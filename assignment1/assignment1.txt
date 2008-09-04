@@ -1,0 +1,283 @@
+		ASSIGNMENT 1: Lexical Analysis
+
+OVERVIEW:
+The first major component of your compiler is the lexical analyzer.
+In this assignment, you will first write a very simple lexer by hand.
+Then you should go on to write a lexer for a subset of the C language.
+It is strongly recommended that you write this using lex/flex.
+
+===========================================================================
+			PART 1: A hand-coded lexer
+Write a function yylex(), which accepts no arguments and returns
+an int representing the token code.  yylex() will consume characters
+until the longest possible token is matched.  The language to be recognized
+is the following:
+	Token Name	Pattern			
+	NUMBER		[0-9]+ 		
+			|0[xX][0-9]+
+	IDENTIFIER	[A-Za-z]+[A-Za-z0-9_]*
+	PLUS		+
+	PLUSPLUS	++
+	ASSIGN		=
+	EQUALS		==
+	PLUSEQ		+=
+
+WHITESPACE (defined as newlines, tabs or spaces) between tokens is to
+be ignored.
+
+Also write a main which repeatedly calls yylex() until EOF is returned.
+For each token returned, print to stdout the token name as given above,
+and the actual lexeme.  These two items should be delimited by tabs, and
+each token recognized should be on its own line.  
+
+If an error is encountered, print the message ERROR and terminate.
+	
+===========================================================================
+
+			Part 2: A lexer for the C language
+
+INPUT ASSUMPTIONS:
+In the C language, pre-processing takes place before lexical analysis,
+although many compilers (including gcc) perform both within the
+same lexer.  You may assume that the input to your lexer has
+already been passed through the preprocessor, which can be invoked
+with the command cpp.  The command gcc -E is similar, but it tends to
+produce output which contains gcc-specific extension keywords.
+Pre-processing handles the following for you:
+	include files
+	conditional inclusion of source (e.g. #ifdef)
+	trigraph conversion and other stupidity (but not C-99 "digraphs")
+	joining of lines continued with a \ at the end of the line
+	macros
+According to section 5.1.1.2 of the ISO C Standard, this corresponds
+to translation phases 1 through 4 having been performed already.
+
+LINE NUMBERS AND ERROR REPORTING:
+You will see that the output of cpp contains lines which begin with
+a #.  These are line number markers, and tell you where in the original
+source file the next line came from.  These markers are output by
+cpp whenever it takes any action which adds or deletes lines.  By
+extracting the information from these marker lines, and keeping track
+of newlines, you can maintain the current filename and line number
+for error reporting purposes.
+
+Error reporting and in particular error recovery is not easy.
+At the very least, if your lexer encounters input which does not
+conform to the lexical rules, it should output (to stderr, not stdout!!!)
+a descriptive error message with the file name and line number of
+the place of error.  It may then halt.  As a future refinement,
+we'll discuss ways attempt recovery and further processing.
+
+TOKEN CODES:
+yacc/bison expects yylex() to return integer token codes.  By convention,
+single-character tokens can be represented simply by their ASCII value.
+E.g. if you recognize an = token, you may return('=').  However, this
+obviously doesn't work for multi-character tokens.  You will need to
+provide a .h file containing a list of #defines for each token code
+that is not represented by a simple character.  yacc/bison likes these
+numbers to start at 257 to avoid conflict with ASCII codes, e.g.
+#define EQEQ 257
+#define NOTEQ 258
+
+Note that yacc/bison prefers to see 0 as the EOF token, not -1, but it
+tolerates -1.
+
+yacc/bison can generate this .h file for you, or you can create it
+manually and have it included with your parser.  For this assignment,
+we are not using a parser, and so you will have to manually create the
+file.  
+
+
+
+
+WHAT ARE THE TOKENS?
+WHAT CAN I SKIP?
+Read the C standard or Harbison & Steele.  Basically, tokens are
+keywords, identifiers, numeric constants, string literals, or
+operators/punctuators. 
+
+You don't need to implement Universal Character Names.
+You must implement all of the numeric constants, including
+properly recognizing them and converting them to an internal
+representation (int, float, etc.).  See below about token values.
+You should recognize floating-point constants with a "p"
+form but aren't required to understand their value (although
+that isn't at all difficult).  You should
+recognize a L in front of a character or string, but aren't
+required to understand or deal with wide characters.
+Recognize all of the keywords listed in the standard.
+If you want to skip "digraphs", which are a C99 extension for
+progammers unfortunate enough to have broken keyboards,
+you may, although they aren't difficult either.
+
+Note that whitespace is not a token!   Whitespace occurs between tokens,
+and is silently consumed.
+
+TOKEN VALUES:
+yacc/bison expects the lexer to return token values
+in a variable called yylval.  It doesn't look at this variable
+to make parse decisions, but as we'll see, being able to maintain
+values for terminals and non-terminals in the grammar is the
+underpinning for the entire syntax-directed translation process.
+
+yylval is by default an int but that isn't very useful for
+anything but a trivial calculator.  Let's say that lexical values
+could be either strings or integers.  yacc/bison is expecting
+a union definition like this:
+
+typedef union {
+	char *string_literal;
+	int integer;
+} YYSTYPE;
+
+extern YYSTYPE yylval;
+
+The above is representative of the form of the declaration although
+you will probably need something a bit more complicated.
+It is up to you to provide this declaration in your header file,
+which will ultimately be included by your parser.  For now, you
+can return identifiers simply as a char *.  In the future, you'll
+see how it is helpful to have a symbol table as part of your lexer
+and identifiers will be returned as pointers to a struct of your
+design.  For numeric constants, you need to somehow indicate
+what type of constant you have seen.  This is discussed below.
+
+TESTING:
+To test your lexer, write a simple main program which repeatedly
+calls yylex() and prints out one line for each token, delimited
+by tabs, and containing the following columns:
+	filename in which the token was found
+	line number at which the token was found
+	token name
+	token value
+	other token information
+
+As we'll discuss in class, by standardizing on the output format,
+we will be able to compare and contrast the performance of each
+student's lexer.  
+
+filename: The name of the file at which the token was found.
+  This information can be extracted from the # directives if the
+  input is coming from the preprocessor.  If you have not yet seen
+  any such directives, use <stdin>
+
+line number: an integer formatted as %d
+
+token name: for single-character tokens, use the actual character,
+  e.g. [.  For multi-character or variable-length tokens, you will
+  have a defined name for each.  To aid testing, please use the
+  names found at the end of this document.  They should be
+  self-explanatory.
+
+token value: don't output this column (including the \t) if there
+  is no value associated with the token, e.g. (.  For:
+	 Token Type			Output
+----------------------------------------------------------------------
+	IDENT			The identifier name
+	NUMBER			value, %lld for ints, %Lg for reals
+	CHARLIT			The actual character, if it is
+				printable, otherwise the escape code:
+					\0,\a,\b,\f,\n,\r,\t,\v
+				   else:  \\%03o
+				also, always escape ' " and \
+	STRING			Each character of the string, except
+				for the implicitly added nul terminator,
+				all escaped if necessary as with CHARLIT.  
+				Note that "\0\0\0" is not the same as "".
+
+For CHARLIT and STRING token types, don't just output the literal lexeme.
+Write the code to convert the character literal to a char, or the string
+to an array of chars terminated by a \0.  This includes all of the escape
+code processing.  Then write the code to display a single character,
+or a string of characters, including the escape conventions for output
+described above.
+
+Handling all cases of character literals and string literals can be
+somewhat difficult.  Suggestion: read up on "start conditions" in lex/flex.
+
+For some token types, output a 6th column with additional information:
+  For real NUMBERs, output the size specifier:FLOAT,DOUBLE,LONGDOUBLE.
+  For integer NUMBERs, output UNSIGNED, if the constant is tagged as unsigned,
+  then output the size specification:INT,LONG,LONGLONG.
+					
+
+TEST CASES:
+You'll find a few .c files in the subdirectory ltests.  You can run
+all of them through your testing program, e.g. 
+	gcc -E ltests/*.c |./lexertester
+The files ltests.out and ltests.err contain example output and errors
+from doing so.  Note that the test cases contain a few tricky conditions
+and warnings/errors, as discussed in class.
+
+
+TOKEN NAMES:
+
+Below are the token names which were used in the test cases.
+
+enum tokens {
+	TOKEOF=0,
+	IDENT=257,	/* This is where yacc will put it */
+	CHARLIT,
+	STRING,
+	NUMBER,
+	INDSEL,
+	PLUSPLUS,
+	MINUSMINUS,
+	SHL,
+	SHR,
+	LTEQ,
+	GTEQ,
+	EQEQ,
+	NOTEQ,
+	LOGAND,
+	LOGOR,
+	ELLIPSIS,
+	TIMESEQ,
+	DIVEQ,
+	MODEQ,
+	PLUSEQ,
+	MINUSEQ,
+	SHLEQ,
+	SHREQ,
+	ANDEQ,
+	OREQ,
+	XOREQ,
+	AUTO,
+	BREAK,
+	CASE,
+	CHAR,
+	CONST,
+	CONTINUE,
+	DEFAULT,
+	DO,
+	DOUBLE,
+	ELSE,
+	ENUM,
+	EXTERN,
+	FLOAT,
+	FOR,
+	GOTO,
+	IF,
+	INLINE,
+	INT,
+	LONG,
+	REGISTER,
+	RESTRICT,
+	RETURN,
+	SHORT,
+	SIGNED,
+	SIZEOF,
+	STATIC,
+	STRUCT,
+	SWITCH,
+	TYPEDEF,
+	UNION,
+	UNSIGNED,
+	VOID,
+	VOLATILE,
+	WHILE,
+	_BOOL,
+	_COMPLEX,
+	_IMAGINARY
+};
+
