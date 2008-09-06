@@ -34,6 +34,9 @@ typedef struct token Token;
 int init_lexer(const char input_file[]);
 Symbol get_sym();
 
+/* Debug */
+void printSym(const Symbol sym);
+
 /* Internal Functions */
 static char read_ch();
 static void put_back(const char ch);
