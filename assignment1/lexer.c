@@ -33,7 +33,7 @@ int init_lexer(const char input_file[]) {
 }
 
 Symbol get_sym() {
-	char ch;
+	char ch, ch1, ch2;
 	int item_len = 0;
 	
 	while ((ch = read_ch()) != EOF && isspace(ch))
@@ -55,17 +55,95 @@ Symbol get_sym() {
 					put_back(ch);
 					return plus;
 			}
+		case '=':
+			item_read[item_len] = ch;
+			ch = read_ch();
+			switch (ch) {
+				case '=':
+					++item_len;
+					return equals;
+				default:
+					put_back(ch);
+					return assign;
+			}
+		case '0':
+			item_len = 0;
+			item_read[item_len] = ch;
+			ch = read_ch();
+			if (ch == 'X' || ch == 'x') {
+				++item_len;
+				item_read[item_len] = ch;
+				ch1 = read_ch();
+				if (isdigit(ch1)) {
+					++item_len;
+					do {
+						item_read[item_len] = ch1;
+						++item_len;
+						ch1 = read_ch();
+					} while (isdigit(ch1));
+					item_read[item_len] = '\0';
+					put_back(ch1);
+					return number;
+				}
+				put_back(ch1);
+			}
+			/* Reset and fall through to default */
+			put_back(ch);
+			ch = '0';
 		default:
-			if (isalpha(ch)) {
+			if (isdigit(ch)) {
 				item_len = 0;
 				do {
 					item_read[item_len] = ch;
 					++item_len;
 					ch = read_ch();
-				} while (ch != EOF && isalnum(ch));
+				} while (isdigit(ch));
+				item_read[item_len] = '\0';
+				put_back(ch);
+				return number;
+			} else if (isalpha(ch)) {
+				item_len = 0;
+				do {
+					item_read[item_len] = ch;
+					++item_len;
+					ch = read_ch();
+				} while (isalnum(ch) || ch == '_');
 				item_read[item_len] = '\0';
 				put_back(ch);
 				return identifier;
 			}
+	}
+}
+
+/* Debug */
+void printSym(const Symbol sym) {
+	char out[16];
+	switch (sym) {
+		case number:
+			printf("number");
+			break;
+		case identifier:
+			printf("identifier");
+			break;
+		case plus:
+			printf("plus");
+			break;
+		case plusplus:
+			printf("plusplus");
+			break;
+		case assign:
+			printf("assign");
+			break;
+		case equals:
+			printf("equals");
+			break;
+		case pluseq:
+			printf("pluseq");
+			break;
+		case eof:
+			printf("eof");
+			break;
+		default:
+			printf("uh oh");
 	}
 }

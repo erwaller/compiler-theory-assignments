@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "lexer.h"
 
 int main () {
@@ -6,8 +7,16 @@ int main () {
 	Token toks[100];
 	int sym_count = 0;
 	
-	init_lexer("simple.css");
+	init_lexer("input.txt");
 	
+	do {
+		sym = get_sym();
+		printf("%s\t", item_read);
+		printSym(sym);
+		printf("\n");
+	} while (sym != eof);
+	
+	/*
 	do {	
 		sym = get_sym();
 		toks[sym_count].sym = sym;
@@ -19,6 +28,7 @@ int main () {
 	} while (sym != eof);
 	
 	printf("%s\n",toks[0].word);
+	*/
 	
 	return 0;
 }
