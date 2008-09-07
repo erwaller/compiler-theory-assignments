@@ -22,14 +22,6 @@ typedef enum {
 	eof
 } Symbol;
 
-struct token {
-	Symbol sym;
-	int line;
-	int col;
-	char word[BUFSIZ];
-};
-typedef struct token Token;
-
 /* Interface */
 int init_lexer(const char input_file[]);
 Symbol get_sym();
