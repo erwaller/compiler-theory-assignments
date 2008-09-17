@@ -173,6 +173,9 @@ _Imaginary  {return(_IMAGINARY);}
 "%>"        {return '}';}
             /* Preprocessor "%:" */
             /* Preprocessor "%:%:" */
+            
+            /* Syntax Error */
+.           {fprintf(stderr, "Unmatched input at line number: %d, in file: %s\nExiting...\n", line_number, filename); exit(0);}
 
 %%
 
