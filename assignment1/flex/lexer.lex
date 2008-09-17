@@ -104,7 +104,7 @@ _Complex    {return(_COMPLEX);}
 _Imaginary  {return(_IMAGINARY);}
 
             /* Identifiers */
-{id}        {install_id(); return(IDENT);}
+{id}        {return(IDENT);}
 
             /* Char Constants */
 {charlit}   {return(CHARLIT);}
