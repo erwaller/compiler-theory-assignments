@@ -11,7 +11,6 @@ typedef union {
 extern YYSTYPE yylval;
 
 char* debug_token(int);
-void install_id(void);
 
 enum numbers {
 	REAL,

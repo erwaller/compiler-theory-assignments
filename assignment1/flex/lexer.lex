@@ -185,10 +185,6 @@ char* debug_token(int token_code) {
     }
 }
 
-void install_id() {
-    //strncpy(yylval.text, yytext, yyleng);
-}
-
 main()
 {
 	int ret;
