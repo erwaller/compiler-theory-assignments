@@ -6,7 +6,7 @@
 /* Reads a single char from the stream.
 Maintains column and line counts.*/
 static char read_ch() {
-	char ch = fgetc(source);
+	char ch = fgetc(stdin);
 	++cur_col;
 	if (ch == '\n') {
 		++cur_line;
@@ -18,18 +18,9 @@ static char read_ch() {
 /* Puts a single char back on the stream.
 Maintains column and line counts */
 static void put_back(const char ch) {
-	ungetc(ch, source);
+	ungetc(ch, stdin);
 	--cur_col;
 	if (ch == '\n') --cur_line;
-}
-
-int init_lexer(const char input_file[]) {
-	if ((source = fopen(input_file, "r")) == NULL) return 0;
-	if ((item_read = malloc(BUFSIZ * sizeof(int))) == NULL)
-		return 0;
-	cur_line = 1;
-	cur_col = 0;
-	return 1;
 }
 
 Symbol get_sym() {
@@ -42,18 +33,25 @@ Symbol get_sym() {
 	err_col = cur_col;
 	
 	switch (ch) {
-		case EOF: return eof;
+		case EOF: return TOKEOF;
 		case '+': 
 			item_read[item_len] = ch;
 			ch = read_ch();
 			switch (ch) {
 				case '+':
-					return plusplus;
+					++item_len;
+					item_read[item_len] = ch;
+					item_read[item_len+1] = '\0';
+					return PLUSPLUS;
 				case '=':
-					return pluseq;
+					++item_len;
+					item_read[item_len] = ch;
+					item_read[item_len+1] = '\0';
+					return PLUSEQ;
 				default:
+					item_read[item_len+1] = '\0';
 					put_back(ch);
-					return plus;
+					return PLUS;
 			}
 		case '=':
 			item_read[item_len] = ch;
@@ -61,10 +59,13 @@ Symbol get_sym() {
 			switch (ch) {
 				case '=':
 					++item_len;
-					return equals;
+					item_read[item_len] = ch;
+					item_read[item_len+1] = '\0';
+					return EQUALS;
 				default:
+					item_read[item_len+1] = '\0';
 					put_back(ch);
-					return assign;
+					return ASSIGN;
 			}
 		case '0':
 			item_len = 0;
@@ -83,7 +84,7 @@ Symbol get_sym() {
 					} while (isdigit(ch1));
 					item_read[item_len] = '\0';
 					put_back(ch1);
-					return number;
+					return NUMBER;
 				}
 				put_back(ch1);
 			}
@@ -100,7 +101,7 @@ Symbol get_sym() {
 				} while (isdigit(ch));
 				item_read[item_len] = '\0';
 				put_back(ch);
-				return number;
+				return NUMBER;
 			} else if (isalpha(ch)) {
 				item_len = 0;
 				do {
@@ -110,40 +111,31 @@ Symbol get_sym() {
 				} while (isalnum(ch) || ch == '_');
 				item_read[item_len] = '\0';
 				put_back(ch);
-				return identifier;
+				return IDENTIFIER;
 			}
 	}
 }
 
 /* Debug */
-void printSym(const Symbol sym) {
-	char out[16];
+char* printSym(const Symbol sym) {
 	switch (sym) {
-		case number:
-			printf("number");
-			break;
-		case identifier:
-			printf("identifier");
-			break;
-		case plus:
-			printf("plus");
-			break;
-		case plusplus:
-			printf("plusplus");
-			break;
-		case assign:
-			printf("assign");
-			break;
-		case equals:
-			printf("equals");
-			break;
-		case pluseq:
-			printf("pluseq");
-			break;
-		case eof:
-			printf("eof");
-			break;
+		case NUMBER:
+			return "NUMBER";
+		case IDENTIFIER:
+			return "IDENTIFIER";
+		case PLUS:
+			return "PLUS";
+		case PLUSPLUS:
+			return "PLUSPLUS";
+		case ASSIGN:
+			return "ASSIGN";
+		case EQUALS:
+			return "EQUALS";
+		case PLUSEQ:
+			return "PLUSEQ";
+		case TOKEOF:
+			return "TOKEOF";
 		default:
-			printf("uh oh");
+			return "uh oh";
 	}
 }

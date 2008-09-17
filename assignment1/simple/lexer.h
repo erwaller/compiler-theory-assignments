@@ -5,29 +5,28 @@
 #define lexer_H
 
 static FILE *source;
-static int cur_line;
-static int cur_col;
+static int cur_line = 1;
+static int cur_col = 0;
 static int err_line;
 static int err_col;
-char *item_read;
+char item_read[BUFSIZ];
 
 typedef enum {
-	number,
-	identifier,
-	plus,
-	plusplus,
-	assign,
-	equals,
-	pluseq,
-	eof
+	NUMBER,
+	IDENTIFIER,
+	PLUS,
+	PLUSPLUS,
+	ASSIGN,
+	EQUALS,
+	PLUSEQ,
+	TOKEOF
 } Symbol;
 
 /* Interface */
-int init_lexer(const char input_file[]);
 Symbol get_sym();
 
 /* Debug */
-void printSym(const Symbol sym);
+char* printSym(const Symbol sym);
 
 /* Internal Functions */
 static char read_ch();
