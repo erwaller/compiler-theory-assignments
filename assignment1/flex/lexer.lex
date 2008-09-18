@@ -2,7 +2,6 @@
     #include "lexer.h"
     
     int line_number = 1;
-    int number_type;
     int pre_file_len = 0;
     char filename[BUFSIZ];
 
@@ -73,7 +72,7 @@ const       {return(CONST);}
 continue    {return(CONTINUE);}
 default     {return(DEFAULT);}
 do          {return(DO);}
-double      {return(DOUBLE);}
+longlong      {return(longlong);}
 else        {return(ELSE);}
 enum        {return(ENUM);}
 extern      {return(EXTERN);}
@@ -111,12 +110,12 @@ _Imaginary  {return(_IMAGINARY);}
 {strlit}    {return(STRING);}
 
             /* Numbers */
-{decfloat}  {number_type = REAL; return(NUMBER);}
-{hexfloat}  {number_type = REAL; return(NUMBER);}
+{decfloat}  {num_type = REAL; install_real(); return(NUMBER);}
+{hexfloat}  {num_type = REAL; install_real(); return(NUMBER);}
 
-{hexint}    {number_type = INTEGER; return(NUMBER);}
-{octalint}  {number_type = INTEGER; return(NUMBER);}
-{decint}    {number_type = INTEGER; return(NUMBER);}
+{hexint}    {num_type = INTEGER; install_int(); return(NUMBER);}
+{octalint}  {num_type = INTEGER; install_int(); return(NUMBER);}
+{decint}    {num_type = INTEGER; install_int(); return(NUMBER);}
 
             /* Operators */
 "["         {return '[';}
@@ -179,10 +178,19 @@ _Imaginary  {return(_IMAGINARY);}
 
 %%
 
-char* debug_token(int token_code) {
-    switch(token_code) {
-        case TOKEOF:return "TOKEOF"; case IDENT:return "IDENT"; case CHARLIT:return "CHARLIT"; case STRING:return "STRING"; case NUMBER:return "NUMBER"; case INDSEL:return "INDSEL"; case PLUSPLUS:return "PLUSPLUS"; case MINUSMINUS:return "MINUSMINUS"; case SHL:return "SHL"; case SHR:return "SHR"; case LTEQ:return "LTEQ"; case GTEQ:return "GTEQ"; case EQEQ:return "EQEQ"; case NOTEQ:return "NOTEQ"; case LOGAND:return "LOGAND"; case LOGOR:return "LOGOR"; case ELLIPSIS:return "ELLIPSIS"; case TIMESEQ:return "TIMESEQ"; case DIVEQ:return "DIVEQ"; case MODEQ:return "MODEQ"; case PLUSEQ:return "PLUSEQ"; case MINUSEQ:return "MINUSEQ"; case SHLEQ:return "SHLEQ"; case SHREQ:return "SHREQ"; case ANDEQ:return "ANDEQ"; case OREQ:return "OREQ"; case XOREQ:return "XOREQ"; case AUTO:return "AUTO"; case BREAK:return "BREAK"; case CASE:return "CASE"; case CHAR:return "CHAR"; case CONST:return "CONST"; case CONTINUE:return "CONTINUE"; case DEFAULT:return "DEFAULT"; case DO:return "DO"; case DOUBLE:return "DOUBLE"; case ELSE:return "ELSE"; case ENUM:return "ENUM"; case EXTERN:return "EXTERN"; case FLOAT:return "FLOAT"; case FOR:return "FOR"; case GOTO:return "GOTO"; case IF:return "IF"; case INLINE:return "INLINE"; case INT:return "INT"; case LONG:return "LONG"; case REGISTER:return "REGISTER"; case RESTRICT:return "RESTRICT"; case RETURN:return "RETURN"; case SHORT:return "SHORT"; case SIGNED:return "SIGNED"; case SIZEOF:return "SIZEOF"; case STATIC:return "STATIC"; case STRUCT:return "STRUCT"; case SWITCH:return "SWITCH"; case TYPEDEF:return "TYPEDEF"; case UNION:return "UNION"; case UNSIGNED:return "UNSIGNED"; case VOID:return "VOID"; case VOLATILE:return "VOLATILE"; case WHILE:return "WHILE"; case _BOOL: return "_BOOL"; case _COMPLEX:return "_COMPLEX"; case _IMAGINARY:return "_IMAGINARY"; case '[':return "["; case ']':return "]"; case '(':return "("; case ')':return ")"; case '{':return "{"; case '}':return "}"; case '.':return "."; case '&':return "&"; case '*':return "*"; case '+':return "+"; case '-':return "-"; case '~':return "~"; case '!':return "!"; case '/':return "/"; case '%':return "%"; case '<':return "<"; case '>':return ">"; case '^':return "^"; case '|':return "|"; case '?':return "?"; case ':':return ":"; case ';':return ";"; case '=':return "="; case ',':return ",";
+char* debug_token(int tok_code) {
+    switch(tok_code) {
+        case TOKEOF:return "TOKEOF"; case IDENT:return "IDENT"; case CHARLIT:return "CHARLIT"; case STRING:return "STRING"; case NUMBER:return "NUMBER"; case INDSEL:return "INDSEL"; case PLUSPLUS:return "PLUSPLUS"; case MINUSMINUS:return "MINUSMINUS"; case SHL:return "SHL"; case SHR:return "SHR"; case LTEQ:return "LTEQ"; case GTEQ:return "GTEQ"; case EQEQ:return "EQEQ"; case NOTEQ:return "NOTEQ"; case LOGAND:return "LOGAND"; case LOGOR:return "LOGOR"; case ELLIPSIS:return "ELLIPSIS"; case TIMESEQ:return "TIMESEQ"; case DIVEQ:return "DIVEQ"; case MODEQ:return "MODEQ"; case PLUSEQ:return "PLUSEQ"; case MINUSEQ:return "MINUSEQ"; case SHLEQ:return "SHLEQ"; case SHREQ:return "SHREQ"; case ANDEQ:return "ANDEQ"; case OREQ:return "OREQ"; case XOREQ:return "XOREQ"; case AUTO:return "AUTO"; case BREAK:return "BREAK"; case CASE:return "CASE"; case CHAR:return "CHAR"; case CONST:return "CONST"; case CONTINUE:return "CONTINUE"; case DEFAULT:return "DEFAULT"; case DO:return "DO"; case longlong:return "longlong"; case ELSE:return "ELSE"; case ENUM:return "ENUM"; case EXTERN:return "EXTERN"; case FLOAT:return "FLOAT"; case FOR:return "FOR"; case GOTO:return "GOTO"; case IF:return "IF"; case INLINE:return "INLINE"; case INT:return "INT"; case LONG:return "LONG"; case REGISTER:return "REGISTER"; case RESTRICT:return "RESTRICT"; case RETURN:return "RETURN"; case SHORT:return "SHORT"; case SIGNED:return "SIGNED"; case SIZEOF:return "SIZEOF"; case STATIC:return "STATIC"; case STRUCT:return "STRUCT"; case SWITCH:return "SWITCH"; case TYPEDEF:return "TYPEDEF"; case UNION:return "UNION"; case UNSIGNED:return "UNSIGNED"; case VOID:return "VOID"; case VOLATILE:return "VOLATILE"; case WHILE:return "WHILE"; case _BOOL: return "_BOOL"; case _COMPLEX:return "_COMPLEX"; case _IMAGINARY:return "_IMAGINARY"; case '[':return "["; case ']':return "]"; case '(':return "("; case ')':return ")"; case '{':return "{"; case '}':return "}"; case '.':return "."; case '&':return "&"; case '*':return "*"; case '+':return "+"; case '-':return "-"; case '~':return "~"; case '!':return "!"; case '/':return "/"; case '%':return "%"; case '<':return "<"; case '>':return ">"; case '^':return "^"; case '|':return "|"; case '?':return "?"; case ':':return ":"; case ';':return ";"; case '=':return "="; case ',':return ",";
     }
+}
+
+void install_int(void) {
+	cur_int.is_unsigned = is_int_unsigned(yytext);
+	cur_int.is_long = is_int_long(yytext);
+	cur_int.is_longlong = is_int_longlong(yytext);
+}
+
+void install_real(void) {
 }
 
 main()
@@ -197,11 +205,21 @@ main()
     	        printf("\t%s", yytext);
     	        break;
     	    case NUMBER:
-    	        if (number_type == INTEGER)
-    	            printf("\tINTEGER");
-    	        else
-    	            printf("\tREAL");
-    	        printf("\t%s", yytext);
+    	        if (num_type == INTEGER) {
+					printf("\tINTEGER");
+	    	        printf("\t%s\t", yytext);
+					if(cur_int.is_unsigned)
+						printf("UNSIGNED,");
+					if(cur_int.is_long)
+						printf("LONG");
+					else if(cur_int.is_longlong)
+						printf("LONGLONG");
+					else
+						printf("INT");
+				} else if (num_type == REAL) {
+					printf("\tREAL");
+	    	        printf("\t%s", yytext);
+				}
     	        break;
     	    case CHARLIT:
     	        if(yytext[1] == '\\')
