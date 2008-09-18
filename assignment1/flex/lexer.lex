@@ -191,6 +191,8 @@ void install_int(void) {
 }
 
 void install_real(void) {
+	cur_real.is_float = is_real_float(yytext);
+	cur_real.is_longdouble = is_real_longdouble(yytext);
 }
 
 main()
@@ -218,7 +220,13 @@ main()
 						printf("INT");
 				} else if (num_type == REAL) {
 					printf("\tREAL");
-	    	        printf("\t%s", yytext);
+	    	        printf("\t%s\t", yytext);
+					if(cur_real.is_float)
+						printf("FLOAT");
+					else if(cur_real.is_longdouble)
+						printf("LONGDOUBLE");
+					else
+						printf("DOUBLE");
 				}
     	        break;
     	    case CHARLIT:

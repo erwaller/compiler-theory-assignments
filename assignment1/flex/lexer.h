@@ -8,7 +8,7 @@ typedef struct {
 } sint;
 
 typedef struct {
-    int is_longlong, is_float, is_longlonglong;
+    int is_float, is_longdouble;
 } sreal;
 
 typedef union {
@@ -39,6 +39,12 @@ int is_int_long(char* lexeme) {
 }
 int is_int_longlong(char* lexeme) {
     return (strstr(lexeme,"ll")>0 || strstr(lexeme,"LL")>0) ? 1 : 0;
+}
+int is_real_float(char* lexeme) {
+    return (strchr(lexeme, 'f')>0 || strchr(lexeme, 'F')>0) ? 1 : 0;
+}
+int is_real_longdouble(char* lexeme) {
+    return (strchr(lexeme, 'l')>0 || strchr(lexeme, 'L')>0) ? 1 : 0;
 }
 
 int num_type;
