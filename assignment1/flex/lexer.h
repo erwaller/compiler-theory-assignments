@@ -90,7 +90,7 @@ enum tokens {
 	CONTINUE,
 	DEFAULT,
 	DO,
-	longlong,
+	DOUBLE,
 	ELSE,
 	ENUM,
 	EXTERN,
