@@ -191,8 +191,22 @@ void install_int(void) {
 }
 
 void install_real(void) {
-	cur_real.is_float = is_real_float(yytext);
-	cur_real.is_longdouble = is_real_longdouble(yytext);
+	char *invalid = 0;
+	if (is_real_float(yytext)) {
+		cur_real.is_float = 1;
+		cur_real.is_longdouble = 0;
+		cur_real.f_val = strtof(yytext, &invalid);
+	} else if (is_real_longdouble(yytext)) {
+		cur_real.is_float = 0;
+		cur_real.is_longdouble = 1;
+		cur_real.ld_val = strtold(yytext, &invalid);
+	} else {
+		cur_real.is_float = 0;
+		cur_real.is_longdouble = 0;
+		cur_real.d_val = strtod(yytext, &invalid);
+	}
+	if (invalid != 0)
+		printf("Lexeme: \"%s\", Invalid char: '%c'\n", yytext, *invalid);
 }
 
 main()
@@ -220,13 +234,16 @@ main()
 						printf("INT");
 				} else if (num_type == REAL) {
 					printf("\tREAL");
-	    	        printf("\t%s\t", yytext);
-					if(cur_real.is_float)
+					if(cur_real.is_float){
+						printf("\t%lg\t", cur_real.f_val);
 						printf("FLOAT");
-					else if(cur_real.is_longdouble)
+					}else if(cur_real.is_longdouble){
+						printf("\t%lg\t", cur_real.ld_val);
 						printf("LONGDOUBLE");
-					else
+					}else{
+						printf("\t%lg\t", cur_real.d_val);
 						printf("DOUBLE");
+					}
 				}
     	        break;
     	    case CHARLIT:

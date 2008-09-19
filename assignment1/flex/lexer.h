@@ -4,11 +4,19 @@
 #define lexer_H
 
 typedef struct {
-    int value, is_unsigned, is_long, is_longlong;
+    int int_value, is_unsigned, is_long, is_longlong;
+    long int l_val;
+    unsigned int u_val;
+    long unsigned int lu_val;
+    long long int ll_val;
+    long long unsigned llu_val;
 } sint;
 
 typedef struct {
     int is_float, is_longdouble;
+    double d_val;
+    float f_val;
+    long double ld_val;
 } sreal;
 
 typedef union {
