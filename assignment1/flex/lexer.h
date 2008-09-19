@@ -4,12 +4,12 @@
 #define lexer_H
 
 typedef struct {
-    int int_value, is_unsigned, is_long, is_longlong;
+    int int_val, is_unsigned, is_long, is_longlong;
     long int l_val;
     unsigned int u_val;
-    long unsigned int lu_val;
+    long unsigned int ul_val;
     long long int ll_val;
-    long long unsigned llu_val;
+    long long unsigned ull_val;
 } sint;
 
 typedef struct {

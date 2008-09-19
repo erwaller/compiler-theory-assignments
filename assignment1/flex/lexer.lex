@@ -185,9 +185,29 @@ char* debug_token(int tok_code) {
 }
 
 void install_int(void) {
+	char *invalid = 0;
+	
 	cur_int.is_unsigned = is_int_unsigned(yytext);
 	cur_int.is_long = is_int_long(yytext);
 	cur_int.is_longlong = is_int_longlong(yytext);
+	
+	if (cur_int.is_unsigned) {
+		if(cur_int.is_long) {
+			cur_int.ul_val = strtoul(yytext, &invalid, 0);
+		} else if (cur_int.is_longlong) {
+			cur_int.ull_val = strtoull(yytext, &invalid, 0);
+		} else {
+			cur_int.u_val = (unsigned int)strtoul(yytext, &invalid, 0);
+		}
+	} else {
+		if(cur_int.is_long) {
+			cur_int.l_val = strtol(yytext, &invalid, 0);
+		} else if (cur_int.is_longlong) {
+			cur_int.ll_val = strtoll(yytext, &invalid, 0);
+		} else {
+			cur_int.int_val = (int)strtol(yytext, &invalid, 0);
+		}
+	}
 }
 
 void install_real(void) {
@@ -205,8 +225,6 @@ void install_real(void) {
 		cur_real.is_longdouble = 0;
 		cur_real.d_val = strtod(yytext, &invalid);
 	}
-	if (invalid != 0)
-		printf("Lexeme: \"%s\", Invalid char: '%c'\n", yytext, *invalid);
 }
 
 main()
@@ -223,15 +241,30 @@ main()
     	    case NUMBER:
     	        if (num_type == INTEGER) {
 					printf("\tINTEGER");
-	    	        printf("\t%s\t", yytext);
-					if(cur_int.is_unsigned)
-						printf("UNSIGNED,");
-					if(cur_int.is_long)
-						printf("LONG");
-					else if(cur_int.is_longlong)
-						printf("LONGLONG");
-					else
-						printf("INT");
+					
+					if (cur_int.is_unsigned) {
+						if(cur_int.is_long) {
+							printf("\t%ld\t", cur_int.ul_val);
+							printf("UNSIGNED,LONG");
+						} else if (cur_int.is_longlong) {
+							printf("\t%lld\t", cur_int.ull_val);
+							printf("UNSIGNED,LONGLONG");
+						} else {
+							printf("\t%d\t", cur_int.u_val);
+							printf("UNSIGNED,INT");
+						}
+					} else {
+						if(cur_int.is_long) {
+							printf("\t%ld\t", cur_int.l_val);
+							printf("LONG");
+						} else if (cur_int.is_longlong) {
+							printf("\t%lld\t", cur_int.ll_val);
+							printf("LONGLONG");
+						} else {
+							printf("\t%d\t", cur_int.int_val);
+							printf("INT");
+						}
+					}
 				} else if (num_type == REAL) {
 					printf("\tREAL");
 					if(cur_real.is_float){
