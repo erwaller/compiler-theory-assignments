@@ -1,4 +1,6 @@
     
+Hello Redhen
+
     #include "lexer.h"
     
     int line_number = 1;
