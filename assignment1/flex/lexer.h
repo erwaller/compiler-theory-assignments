@@ -4,63 +4,24 @@
 #define lexer_H
 
 typedef struct {
-    int int_val, is_unsigned, is_long, is_longlong;
-    long int l_val;
-    unsigned int u_val;
-    long unsigned int ul_val;
-    long long int ll_val;
-    long long unsigned ull_val;
-} sint;
-
-typedef struct {
-    int is_float, is_longdouble;
-    double d_val;
-    float f_val;
-    long double ld_val;
-} sreal;
-
-typedef union {
-	char *text;
-	sint* pint;
-	sreal* pfloat;
+    char *text;
+    enum num_types { i, u, l, ul, ll, ull, d, f, ld } type;
+    int i;
+    unsigned int u;
+    long int l;
+    unsigned long int ul;
+    long long int ll;
+    unsigned long long int ull;
+    double d;
+    float f;
+    long double ld;
 } YYSTYPE;
 
-extern YYSTYPE yylval;
-
-// Just save the current real and int for now
-// don't worry about the whole YYSTYPE union
-sint cur_int;
-sreal cur_real;
+YYSTYPE yylval;
 
 char* debug_token(int);
-void install_int(void);
-void install_real(void);
-
-// Helpers for checking real/int stuff
-int is_int_unsigned(char* lexeme) {
-    return (strchr(lexeme, 'u')>0 || strchr(lexeme, 'U')>0) ? 1 : 0;
-}
-int is_int_long(char* lexeme) {
-    return (is_int_longlong(lexeme)==0 && 
-            (strchr(lexeme, 'l')>0 || strchr(lexeme, 'L')>0)) ?
-            1 : 0;
-}
-int is_int_longlong(char* lexeme) {
-    return (strstr(lexeme,"ll")>0 || strstr(lexeme,"LL")>0) ? 1 : 0;
-}
-int is_real_float(char* lexeme) {
-    return (strchr(lexeme, 'f')>0 || strchr(lexeme, 'F')>0) ? 1 : 0;
-}
-int is_real_longdouble(char* lexeme) {
-    return (strchr(lexeme, 'l')>0 || strchr(lexeme, 'L')>0) ? 1 : 0;
-}
-
-int num_type;
-
-enum numbers {
-	REAL,
-	INTEGER
-};
+void install_num(void);
+void print_num(void);
 
 enum tokens {
 	TOKEOF=0,
