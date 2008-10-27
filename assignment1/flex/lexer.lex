@@ -1,11 +1,5 @@
-    
-Hello Redhen
 
     #include "lexer.h"
-    
-    int line_number = 1;
-    int pre_file_len = 0;
-    char filename[BUFSIZ];
 
 /* Definitions */
 ws              [ \t\n\r]
@@ -183,7 +177,7 @@ _Imaginary      {return(_IMAGINARY);}
                 /* Preprocessor "%:%:" */
             
                 /* Syntax Error */
-.               {fprintf(stderr, "Unmatched input at line number: %d, in file: %s\nExiting...\n", line_number, filename); exit(0);}
+.               {fprintf(stderr, "Unmatched input at line number: %d, in file: %s\nExiting...\n", line_number, filename); exit(1);}
 
 %%
 
@@ -207,7 +201,7 @@ void install_num(void) {
         case ld:    yylval.ld = strtold(yytext, &invalid); break;
         default:
             fprintf(stderr, "Error storing number value at line number: %d, in file: %s\nExiting...\n", line_number, filename);
-            exit(0);
+            exit(1);
     }
 }
 
@@ -232,15 +226,15 @@ void print_num(void) {
         case f:     printf("\t%lg\t", yylval.f); printf("FLOAT"); break;
         case ld:    printf("\t%Lg\t", yylval.ld); printf("LONGDOUBLE"); break;
         default:
-            fprintf(stderr, "Error storing number value at line number: %d, in file: %s\nExiting...\n", line_number, filename);
-            exit(0);
+            fprintf(stderr, "Error printing number value at line number: %d, in file: %s\nExiting...\n", line_number, filename);
+            exit(1);
     }
 }
 
+/*
 main()
 {
 	int ret;
-	char ident[BUFSIZ];
 	
 	while ((ret = yylex()) != TOKEOF) {
 	    printf("%s\t%d\t%s", filename, line_number, debug_token(ret));
@@ -266,3 +260,4 @@ main()
 	    printf("\n");
 	};
 }
+*/
