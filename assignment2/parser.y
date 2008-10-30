@@ -7,6 +7,8 @@
     #include "lib/symbol_tbl.h"
     extern char* yytext;
     extern int yyleng;
+    extern char* filename;
+    extern int line_number;
     int yylex (void); 
     void yyerror (char const *);
     symbol_tbl *sym_tbl;
@@ -96,27 +98,76 @@
 %type <i> exp
 
 %left '='
-%left '+' '-' '*' '/'
+%left '+' '-'
+%left '*' '/'
+%right '^'
+
+%initial-action
+{
+    
+};
 
 %% /* Grammar rules and actions follow. */ 
 
 input: /* empty */ 
-    | input line 
+    | block_list                            {  }
+    | open_scope block_list close_scope     { printf("open/close scope\n"); }
+;
+
+open_scope:   '{'                   { open_scope(sym_tbl);                  }
+;
+
+close_scope:  '}'                   { close_scope(sym_tbl);                 }
+;
+
+block_list:   line                  {}
+            | block_list line       {}
 ;
 
 line:         ';'
-            | exp ';'               { printf ("\t%d\n", $1);                }
+            | exp ';'               { printf("%s:%d: %d\n", filename, line_number, $1); }
             | INT dec_list ';'      { ;                                     }
 ;
 
 exp:          NUMBER                { $$ = $1;                              }
-            | IDENT                 { read_sym(sym_tbl, $1, &$$);           }
+            | IDENT                 
+                {
+                    if (!read_sym(sym_tbl, $1, &$$)) {
+                        $$ = 1;
+                        fprintf (stderr, "%d.%d-%d.%d: undefined variable",
+                                        @1.first_line, @1.first_column,
+                                        @1.last_line, @1.last_column);
+                    }
+                }
             | exp '+' exp           { $$ = $1 + $3;                         }
             | exp '-' exp           { $$ = $1 - $3;                         }
             | exp '*' exp           { $$ = $1 * $3;                         }
-            | exp '/' exp           { $$ = $1 / $3;                         }
+            | exp '/' exp
+                {
+                    if ($3)
+                        $$ = $1 / $3;
+                    else
+                    {
+                        $$ = 0;
+                        fprintf (stderr, "%d.%d-%d.%d: division by zero",
+                                        @3.first_line, @3.first_column,
+                                        @3.last_line, @3.last_column);
+                    }
+                }
+            | exp '^' exp           { $$ = pow($1, $3);                     }
             | '(' exp ')'           { $$ = $2;                              }
-            | IDENT '=' exp         { $$ = $3; write_sym(sym_tbl, $1, &$3); }
+            | IDENT '=' exp
+            {
+                if (write_sym(sym_tbl, $1, &$3))
+                    $$ = $3;
+                else
+                {
+                    $$ = 0;
+                    fprintf (stderr, "%d.%d-%d.%d: undefined variable",
+                                    @1.first_line, @1.first_column,
+                                    @1.last_line, @1.last_column);
+                }
+            }
 ;
 
 dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
@@ -134,5 +185,5 @@ main (void)
 
 void yyerror (char const *error)
 {
-    fprintf(stderr, "ERROR:\n%s\n", error);
+    fprintf(stderr, "\nERROR: %s\n", error);
 }

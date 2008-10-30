@@ -41,7 +41,7 @@ int new_sym(symbol_tbl *sym_tbl, char *ident) {
     bucket = &sym_tbl->current->buckets[hash(ident)%SYM_TBL_LEN];
     while(*bucket != NULL) {
         if(strcmp((*bucket)->ident, ident) == 0) {
-            fprintf(stderr, "Identifier previously declared in this scope.\n");
+            //fprintf(stderr, "Identifier previously declared in this scope.\n");
             return 0;
         }
         *bucket = (*bucket)->next;
@@ -66,7 +66,7 @@ int write_sym(symbol_tbl *sym_tbl, char *ident, int *src_val) {
             }
         }
     } while((scope = scope->prev) != NULL);
-    fprintf(stderr, "Identifier does not exist.\n");
+    //fprintf(stderr, "Identifier does not exist.\n");
     return 0;
 }
 
@@ -85,7 +85,7 @@ int read_sym(symbol_tbl *sym_tbl, char *ident, int *dest_val) {
             }
         }
     } while((scope = scope->prev) != NULL);
-    fprintf(stderr, "Identifier does not exist.\n");
+    //fprintf(stderr, "Identifier does not exist.\n");
     return 0;
 }
 
