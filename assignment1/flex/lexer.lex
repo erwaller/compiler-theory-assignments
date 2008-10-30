@@ -231,7 +231,6 @@ void print_num(void) {
     }
 }
 
-/*
 main()
 {
 	int ret;
@@ -260,4 +259,3 @@ main()
 	    printf("\n");
 	};
 }
-*/

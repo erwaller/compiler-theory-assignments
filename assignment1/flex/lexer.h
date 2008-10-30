@@ -26,9 +26,10 @@ char* debug_token(int);
 void install_num(void);
 void print_num(void);
 
+
 enum tokens {
 	TOKEOF=0,
-	IDENT=257,	/* This is where yacc will put it */
+	IDENT=257,
 	CHARLIT,
 	STRING,
 	NUMBER,
