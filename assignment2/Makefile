@@ -1,8 +1,8 @@
-simple: parser.tab.c lex.yy.c
-	gcc -lm -o simple parser.tab.c lex.yy.c
+simple: parser.tab.c lex.yy.c lexer.h
+	gcc -lm -o simple parser.tab.c lex.yy.c lib/symbol_tbl.c
 
 parser.tab.c: parser.y
-	bison --report=state parser.y
+	bison -r all parser.y
 
 lex.yy.c: lexer.lex
 	flex lexer.lex

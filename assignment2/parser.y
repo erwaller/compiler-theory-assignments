@@ -4,8 +4,12 @@
     #include <math.h>
     #include <stdio.h>
     #include <ctype.h>
+    #include "lib/symbol_tbl.h"
+    extern char* yytext;
+    extern int yyleng;
     int yylex (void); 
     void yyerror (char const *);
+    symbol_tbl *sym_tbl;
 %}
 
 %defines
@@ -25,9 +29,9 @@
 }
 
 %token TOKEOF 0
-%token IDENT
+%token <s> IDENT
 %token <c> CHARLIT
-%token <text> STRING
+%token <s> STRING
 %token <i> NUMBER
 %token INDSEL
 %token PLUSPLUS
@@ -91,32 +95,40 @@
 
 %type <i> exp
 
+%left '='
+%left '+' '-' '*' '/'
+
 %% /* Grammar rules and actions follow. */ 
 
 input: /* empty */ 
     | input line 
 ;
 
-line: '\n'
-    | exp '\n' { printf ("\t%d\n", $1); } 
+line:         ';'
+            | exp ';'               { printf ("\t%d\n", $1);                }
+            | INT dec_list ';'      { ;                                     }
 ;
 
-exp: NUMBER { $$ = $1; } 
-    | exp exp '+' { $$ = $1 + $2; } 
-    | exp exp '-' { $$ = $1 - $2; } 
-    | exp exp '*' { $$ = $1 * $2; } 
-    | exp exp '/' { $$ = $1 / $2; } 
-    /* Exponentiation */ 
-    | exp exp '^' { $$ = pow ($1, $2); } 
-    /* Unary minus */ 
-    | exp 'n' { $$ = -$1; } 
+exp:          NUMBER                { $$ = $1;                              }
+            | IDENT                 { read_sym(sym_tbl, $1, &$$);           }
+            | exp '+' exp           { $$ = $1 + $3;                         }
+            | exp '-' exp           { $$ = $1 - $3;                         }
+            | exp '*' exp           { $$ = $1 * $3;                         }
+            | exp '/' exp           { $$ = $1 / $3;                         }
+            | '(' exp ')'           { $$ = $2;                              }
+            | IDENT '=' exp         { $$ = $3; write_sym(sym_tbl, $1, &$3); }
+;
+
+dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
+            | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 }
 ;
 
 %% 
 
 int 
 main (void) 
-{ 
+{
+    init_symbol_tbl(&sym_tbl);
     return yyparse(); 
 }
 
