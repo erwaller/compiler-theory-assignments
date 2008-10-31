@@ -36,12 +36,11 @@ int close_scope(symbol_tbl *sym_tbl) {
 }
 
 int new_sym(symbol_tbl *sym_tbl, char *ident) {
-    // Needs to check for duplicate symbols in the current scope
     struct symbol **bucket, *new_sym;
     bucket = &sym_tbl->current->buckets[hash(ident)%SYM_TBL_LEN];
     while(*bucket != NULL) {
         if(strcmp((*bucket)->ident, ident) == 0) {
-            //fprintf(stderr, "Identifier previously declared in this scope.\n");
+            fprintf(stderr, "Identifier previously declared in this scope.\n");
             return 0;
         }
         *bucket = (*bucket)->next;
@@ -51,7 +50,8 @@ int new_sym(symbol_tbl *sym_tbl, char *ident) {
     return 1;
 }
 
-int write_sym(symbol_tbl *sym_tbl, char *ident, int *src_val) {
+// Just pass the int by value for now to simplify embedded actions
+int write_sym(symbol_tbl *sym_tbl, char *ident, int src_val) {
     struct symbol *sym;
     struct scope *scope;
     scope = sym_tbl->current;
@@ -59,14 +59,14 @@ int write_sym(symbol_tbl *sym_tbl, char *ident, int *src_val) {
         sym = scope->buckets[hash(ident)%SYM_TBL_LEN];
         while(sym != NULL) {
             if(strcmp(sym->ident, ident) == 0) {
-                sym->value = *src_val;
+                sym->value = src_val;
                 return 1;
             } else {
                 sym = sym->next;
             }
         }
     } while((scope = scope->prev) != NULL);
-    //fprintf(stderr, "Identifier does not exist.\n");
+    fprintf(stderr, "Identifier does not exist.\n");
     return 0;
 }
 
@@ -85,7 +85,7 @@ int read_sym(symbol_tbl *sym_tbl, char *ident, int *dest_val) {
             }
         }
     } while((scope = scope->prev) != NULL);
-    //fprintf(stderr, "Identifier does not exist.\n");
+    fprintf(stderr, "Identifier does not exist.\n");
     return 0;
 }
 

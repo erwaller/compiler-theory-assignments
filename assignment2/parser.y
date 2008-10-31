@@ -97,10 +97,10 @@
 
 %type <i> exp
 
-%left '='
+%left '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
+%left '?' ':'
 %left '+' '-'
-%left '*' '/'
-%right '^'
+%left '*' '/' '%' SHL SHR '&' '|' '^'
 
 %initial-action
 {
@@ -110,38 +110,33 @@
 %% /* Grammar rules and actions follow. */ 
 
 input:        global_stmt                   {}
-            | input global_stmt             {}
-;
-
+            | input global_stmt             {};
+            
 global_stmt:  decl                  {}
-            | IDENT '(' ')' block   { new_sym(sym_tbl, $1); }
-;
+            | IDENT '(' ')' block   { new_sym(sym_tbl, $1); };
+            
+block:      open block_list close   {};
 
-block:      open block_list close   {}
-;
-open:         '{'                   { open_scope(sym_tbl);                  }
-;
-close:        '}'                   { close_scope(sym_tbl);                 }
-;
+open:         '{'                   { open_scope(sym_tbl);                  };
+
+close:        '}'                   { close_scope(sym_tbl);                 };
 
 block_list:   stmt                  {}
-            | block_list stmt       {}
-;
-
+            | block_list stmt       {};
+            
 stmt:         ';'
             | exp ';'               { printf("%s:%d: %d\n", filename, line_number, $1); }
             | decl                  {}
-            | block                 {}
-;
-
-decl:         INT dec_list ';'      {  }
+            | block                 {};
+            
+decl:         INT dec_list ';'      {  };
 
 exp:          NUMBER                { $$ = $1;                              }
             | IDENT                 
                 {
                     if (!read_sym(sym_tbl, $1, &$$)) {
-                        $$ = 1;
-                        fprintf (stderr, "%d.%d-%d.%d: undefined variable",
+                        $$ = 0;
+                        fprintf (stderr, "%d.%d-%d.%d: undefined variable\n",
                                         @1.first_line, @1.first_column,
                                         @1.last_line, @1.last_column);
                     }
@@ -149,37 +144,57 @@ exp:          NUMBER                { $$ = $1;                              }
             | exp '+' exp           { $$ = $1 + $3;                         }
             | exp '-' exp           { $$ = $1 - $3;                         }
             | exp '*' exp           { $$ = $1 * $3;                         }
-            | exp '/' exp
-                {
+            | exp '/' exp           {
                     if ($3)
                         $$ = $1 / $3;
-                    else
-                    {
+                    else {
                         $$ = 0;
-                        fprintf (stderr, "%d.%d-%d.%d: division by zero",
-                                        @3.first_line, @3.first_column,
-                                        @3.last_line, @3.last_column);
+                        fprintf (stderr, "Division by zero\n");
                     }
                 }
-            | exp '^' exp           { $$ = pow($1, $3);                     }
+            | exp '%' exp           { $$ = $1 % $3;                         }
+            | exp SHL exp           { $$ = $1 << $3;                        }
+            | exp SHR exp           { $$ = $1 >> $3;                        }
+            | exp '&' exp           { $$ = $1 & $3;                         }
+            | exp '|' exp           { $$ = $1 | $3;                         }
+            | exp '^' exp           { $$ = $1 ^ $3;                         }
             | '(' exp ')'           { $$ = $2;                              }
-            | IDENT '=' exp
-            {
-                if (write_sym(sym_tbl, $1, &$3))
-                    $$ = $3;
-                else
-                {
-                    $$ = 0;
-                    fprintf (stderr, "%d.%d-%d.%d: undefined variable",
-                                    @1.first_line, @1.first_column,
-                                    @1.last_line, @1.last_column);
-                }
-            }
-;
+            | IDENT '=' exp         { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
+            | IDENT PLUSEQ exp      { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t+$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT MINUSEQ exp     { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t-$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT TIMESEQ exp     { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t*$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT DIVEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t/$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT MODEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t%$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT SHLEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t<<$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT SHREQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t>>$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT ANDEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t&$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT OREQ exp        { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t|$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | IDENT XOREQ exp       { int t; read_sym(sym_tbl, $1, &t);
+                                      $$ = t^$3;
+                                      write_sym(sym_tbl, $1, $$);           }
+            | exp '?' exp ':' exp   { $$ = $1 ? $3 : $5                     };
+            
 
 dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
-            | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 }
-;
+            | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 };
 
 %% 
 
