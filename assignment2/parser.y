@@ -110,24 +110,32 @@
 %% /* Grammar rules and actions follow. */ 
 
 input: /* empty */ 
-    | block_list                            {  }
-    | open_scope block_list close_scope     { printf("open/close scope\n"); }
+    | global_stmt                   {}
+    | input global_stmt             {}
 ;
 
-open_scope:   '{'                   { open_scope(sym_tbl);                  }
+global_stmt:  decl                  {}
+            | block                 {}
 ;
 
-close_scope:  '}'                   { close_scope(sym_tbl);                 }
+block:      open block_list close   {}
+;
+open:         '{'                   { open_scope(sym_tbl);                  }
+;
+close:        '}'                   { close_scope(sym_tbl);                 }
 ;
 
-block_list:   line                  {}
-            | block_list line       {}
+block_list:   stmt                  {}
+            | block_list stmt       {}
 ;
 
-line:         ';'
+stmt:         ';'
             | exp ';'               { printf("%s:%d: %d\n", filename, line_number, $1); }
-            | INT dec_list ';'      { ;                                     }
+            | decl                  {}
+            | block                 {}
 ;
+
+decl:         INT dec_list ';'      {  }
 
 exp:          NUMBER                { $$ = $1;                              }
             | IDENT                 
