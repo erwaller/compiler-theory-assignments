@@ -95,17 +95,15 @@
 %token _COMPLEX
 %token _IMAGINARY
 
+%type <s> lval
 %type <i> exp
+%type <i> una_post
 
+%left ','
 %left '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
 %left '?' ':'
 %left '+' '-'
-%left '*' '/' '%' SHL SHR '&' '|' '^'
-
-%initial-action
-{
-    
-};
+%left '*' '/' '%' SHL SHR '&' '|' '^' '~'
 
 %% /* Grammar rules and actions follow. */ 
 
@@ -132,17 +130,11 @@ stmt:         ';'
 decl:         INT dec_list ';'      {  };
 
 exp:          NUMBER                { $$ = $1;                              }
-            | IDENT                 
-                {
-                    if (!read_sym(sym_tbl, $1, &$$)) {
-                        $$ = 0;
-                        fprintf (stderr, "%d.%d-%d.%d: undefined variable\n",
-                                        @1.first_line, @1.first_column,
-                                        @1.last_line, @1.last_column);
-                    }
-                }
+            | una_post              { $$ = $1;                              }
+            | '(' exp ')'           { $$ = $2;                              }
             | '+' exp               { $$ = $2;                              }
             | '-' exp               { $$ = $2 * -1;                         }
+            | '~' exp               { $$ = ~$2;                             }
             | exp '+' exp           { $$ = $1 + $3;                         }
             | exp '-' exp           { $$ = $1 - $3;                         }
             | exp '*' exp           { $$ = $1 * $3;                         }
@@ -160,52 +152,59 @@ exp:          NUMBER                { $$ = $1;                              }
             | exp '&' exp           { $$ = $1 & $3;                         }
             | exp '|' exp           { $$ = $1 | $3;                         }
             | exp '^' exp           { $$ = $1 ^ $3;                         }
-            | PLUSPLUS IDENT        { int t1; read_sym(sym_tbl, $2, &t1);
-                                      t1 = t1 + 1; $$ = t1;
-                                      write_sym(sym_tbl, $2, t1);           }
-            | IDENT PLUSPLUS        { int t1; read_sym(sym_tbl, $1, &t1);
-                                      $$ = t1; t1 = t1 + 1;
-                                      write_sym(sym_tbl, $1, t1);           }
-            | MINUSMINUS IDENT      { int t1; read_sym(sym_tbl, $2, &t1);
-                                      t1 = t1 - 1; $$ = t1;
-                                      write_sym(sym_tbl, $2, t1);           }
-            | IDENT MINUSMINUS      { int t1; read_sym(sym_tbl, $1, &t1);
-                                      $$ = t1; t1 = t1 - 1;
-                                      write_sym(sym_tbl, $1, t1);           }
-            | '(' exp ')'           { $$ = $2;                              }
-            | IDENT '=' exp         { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
-            | IDENT PLUSEQ exp      { int t; read_sym(sym_tbl, $1, &t);
+            | lval '=' exp          { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
+            | lval PLUSEQ exp       { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t+$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT MINUSEQ exp     { int t; read_sym(sym_tbl, $1, &t);
+            | lval MINUSEQ exp      { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t-$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT TIMESEQ exp     { int t; read_sym(sym_tbl, $1, &t);
+            | lval TIMESEQ exp      { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t*$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT DIVEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval DIVEQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t/$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT MODEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval MODEQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t%$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT SHLEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval SHLEQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t<<$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT SHREQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval SHREQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t>>$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT ANDEQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval ANDEQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t&$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT OREQ exp        { int t; read_sym(sym_tbl, $1, &t);
+            | lval OREQ exp         { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t|$3;
                                       write_sym(sym_tbl, $1, $$);           }
-            | IDENT XOREQ exp       { int t; read_sym(sym_tbl, $1, &t);
+            | lval XOREQ exp        { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t^$3;
                                       write_sym(sym_tbl, $1, $$);           }
+            | exp ',' exp           { $$ = $3;                              }
             | exp '?' exp ':' exp   { $$ = $1 ? $3 : $5                     };
-            
+
+una_post:     lval                  { if (!read_sym(sym_tbl, $1, &$$)) $$ = 0; }
+            | lval PLUSPLUS         { int t1; read_sym(sym_tbl, $1, &t1);
+                                      $$ = t1; t1 = t1 + 1;
+                                      write_sym(sym_tbl, $1, t1);           }
+            | lval MINUSMINUS       { int t1; read_sym(sym_tbl, $1, &t1);
+                                      $$ = t1; t1 = t1 - 1;
+                                      write_sym(sym_tbl, $1, t1);           }
+            | PLUSPLUS lval         { int t1; read_sym(sym_tbl, $2, &t1);
+                                      t1 = t1 + 1; $$ = t1;
+                                      write_sym(sym_tbl, $2, t1);           }
+            | MINUSMINUS lval       { int t1; read_sym(sym_tbl, $2, &t1);
+                                      t1 = t1 - 1; $$ = t1;
+                                      write_sym(sym_tbl, $2, t1);           };
+                                      
+lval:         IDENT                 { $$ = $1;                              }
+            | lval '[' exp ']'      {                                       }
+            | lval '(' ')'          {                                       }
+            | lval '.' IDENT        {                                       }
+            | lval INDSEL IDENT     {                                       };
 
 dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
             | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 };
