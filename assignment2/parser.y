@@ -141,6 +141,8 @@ exp:          NUMBER                { $$ = $1;                              }
                                         @1.last_line, @1.last_column);
                     }
                 }
+            | '+' exp               { $$ = $2;                              }
+            | '-' exp               { $$ = $2 * -1;                         }
             | exp '+' exp           { $$ = $1 + $3;                         }
             | exp '-' exp           { $$ = $1 - $3;                         }
             | exp '*' exp           { $$ = $1 * $3;                         }
@@ -158,6 +160,18 @@ exp:          NUMBER                { $$ = $1;                              }
             | exp '&' exp           { $$ = $1 & $3;                         }
             | exp '|' exp           { $$ = $1 | $3;                         }
             | exp '^' exp           { $$ = $1 ^ $3;                         }
+            | PLUSPLUS IDENT        { int t1; read_sym(sym_tbl, $2, &t1);
+                                      t1 = t1 + 1; $$ = t1;
+                                      write_sym(sym_tbl, $2, t1);           }
+            | IDENT PLUSPLUS        { int t1; read_sym(sym_tbl, $1, &t1);
+                                      $$ = t1; t1 = t1 + 1;
+                                      write_sym(sym_tbl, $1, t1);           }
+            | MINUSMINUS IDENT      { int t1; read_sym(sym_tbl, $2, &t1);
+                                      t1 = t1 - 1; $$ = t1;
+                                      write_sym(sym_tbl, $2, t1);           }
+            | IDENT MINUSMINUS      { int t1; read_sym(sym_tbl, $1, &t1);
+                                      $$ = t1; t1 = t1 - 1;
+                                      write_sym(sym_tbl, $1, t1);           }
             | '(' exp ')'           { $$ = $2;                              }
             | IDENT '=' exp         { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
             | IDENT PLUSEQ exp      { int t; read_sym(sym_tbl, $1, &t);
