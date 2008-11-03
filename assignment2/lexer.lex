@@ -1,8 +1,15 @@
 
     #include "shared.h"
-    #include "lexer.h"
     #include "parser.tab.h"
-    #include "lib/symbol_tbl.h"
+    
+    char* debug_token(int);
+    void install_ident(void);
+    void install_num(void);
+    void print_num(void);
+    void install_string(void);
+    
+    int line_number = 1;
+    char filename[BUFSIZ];
 
 %option noyywrap
 
@@ -52,7 +59,7 @@ strlit          L?\"{scharseq}\"
 id              {nondigit}({nondigit}|{digit})*
 
 /* Preprocessor output */
-gccline         #[ ]{digitseq}[ ]
+gccline         "# "{digitseq}" "
 gccout          {gccline}{strlit}
 
 %%

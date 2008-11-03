@@ -1,4 +1,4 @@
-simple: parser.tab.c lex.yy.c lexer.h
+simple: parser.tab.c lex.yy.c 
 	gcc -lm -o simple parser.tab.c lex.yy.c lib/symbol_tbl.c
 
 parser.tab.c: parser.y

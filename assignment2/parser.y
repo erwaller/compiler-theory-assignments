@@ -8,8 +8,8 @@
     #include "lib/symbol_tbl.h"
     extern char* yytext;
     extern int yyleng;
-    extern char* filename;
     extern int line_number;
+    extern char filename[];
     int yylex (void); 
     void yyerror (char const *);
     symbol_tbl *sym_tbl;
@@ -128,7 +128,7 @@ stmt:         ';'
             | decl                  {}
             | block                 {};
             
-decl:         INT dec_list ';'      {  };
+decl:         INT dec_list ';'      {};
 
 exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == d)
                                         fprintf(stderr, "%s:%d:Warning:Truncating real number to integer\n", filename, line_number);

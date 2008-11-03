@@ -47,7 +47,7 @@ strlit          L?\"{scharseq}\"
 id              {nondigit}({nondigit}|{digit})*
 
 /* Preprocessor output */
-gccline         #[ ]{digitseq}[ ]
+gccline         "# "{digitseq}" "
 gccout          {gccline}{strlit}
 
 %%
