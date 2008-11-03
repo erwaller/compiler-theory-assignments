@@ -4,6 +4,7 @@
     #include <math.h>
     #include <stdio.h>
     #include <ctype.h>
+    #include "shared.h"
     #include "lib/symbol_tbl.h"
     extern char* yytext;
     extern int yyleng;
@@ -123,13 +124,27 @@ block_list:   stmt                  {}
             | block_list stmt       {};
             
 stmt:         ';'
-            | exp ';'               { printf("%s:%d: %d\n", filename, line_number, $1); }
+            | exp ';'               { printf("%s:%d: exprval=%d\n", filename, line_number, $1); }
             | decl                  {}
             | block                 {};
             
 decl:         INT dec_list ';'      {  };
 
-exp:          NUMBER                { $$ = $1;                              }
+exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == d)
+                                        fprintf(stderr, "%s:%d:Warning:Truncating real number to integer\n", filename, line_number);
+                                      switch ($<t>1) {
+                                        case f:
+                                            $$ = (int)$<f>1;
+                                            break;
+                                        case ld:
+                                            $$ = (int)$<ld>1;
+                                            break;
+                                        case d:
+                                            $$ = (int)$<d>1;
+                                            break;
+                                        default:
+                                            $$ = $1;
+                                      } }
             | una_post              { $$ = $1;                              }
             | '(' exp ')'           { $$ = $2;                              }
             | '+' exp               { $$ = $2;                              }
@@ -152,6 +167,7 @@ exp:          NUMBER                { $$ = $1;                              }
             | exp '&' exp           { $$ = $1 & $3;                         }
             | exp '|' exp           { $$ = $1 | $3;                         }
             | exp '^' exp           { $$ = $1 ^ $3;                         }
+            | lval '(' ')'          { $$ = 0; fprintf(stderr, "%s:%d:Warning:Function calls not implemented\n", filename, line_number); }
             | lval '=' exp          { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
             | lval PLUSEQ exp       { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t+$3;
@@ -201,10 +217,9 @@ una_post:     lval                  { if (!read_sym(sym_tbl, $1, &$$)) $$ = 0; }
                                       write_sym(sym_tbl, $2, t1);           };
                                       
 lval:         IDENT                 { $$ = $1;                              }
-            | lval '[' exp ']'      {                                       }
-            | lval '(' ')'          {                                       }
-            | lval '.' IDENT        {                                       }
-            | lval INDSEL IDENT     {                                       };
+            | lval '[' exp ']'      { fprintf(stderr, "%s:%d:Warning:Arrays not implemented\n", filename, line_number); }
+            | lval '.' IDENT        { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); }
+            | lval INDSEL IDENT     { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); };
 
 dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
             | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 };

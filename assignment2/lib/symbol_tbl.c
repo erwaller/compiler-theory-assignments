@@ -3,6 +3,9 @@
 #include <string.h>
 #include "symbol_tbl.h"
 
+extern char* filename;
+extern int line_number;
+
 void* my_malloc(unsigned int size) {
     void *ret;
     if((ret = calloc(1, size)) == NULL) {
@@ -40,7 +43,7 @@ int new_sym(symbol_tbl *sym_tbl, char *ident) {
     bucket = &sym_tbl->current->buckets[hash(ident)%SYM_TBL_LEN];
     while(*bucket != NULL) {
         if(strcmp((*bucket)->ident, ident) == 0) {
-            fprintf(stderr, "Identifier previously declared in this scope.\n");
+            fprintf(stderr, "%s:%d:Error:Identifier previously declared in this scope: %s\n", filename, line_number, ident);
             return 0;
         }
         *bucket = (*bucket)->next;
@@ -66,7 +69,7 @@ int write_sym(symbol_tbl *sym_tbl, char *ident, int src_val) {
             }
         }
     } while((scope = scope->prev) != NULL);
-    fprintf(stderr, "Identifier does not exist.\n");
+    fprintf(stderr, "%s:%d:Error:Undefined variable: %s\n", filename, line_number, ident);
     return 0;
 }
 
@@ -85,7 +88,7 @@ int read_sym(symbol_tbl *sym_tbl, char *ident, int *dest_val) {
             }
         }
     } while((scope = scope->prev) != NULL);
-    fprintf(stderr, "Identifier does not exist.\n");
+    fprintf(stderr, "%s:%d:Error:Undefined variable: %s\n", filename, line_number, ident);
     return 0;
 }
 

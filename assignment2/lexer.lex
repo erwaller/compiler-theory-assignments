@@ -1,4 +1,5 @@
 
+    #include "shared.h"
     #include "lexer.h"
     #include "parser.tab.h"
     #include "lib/symbol_tbl.h"
