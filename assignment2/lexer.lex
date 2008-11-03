@@ -58,6 +58,8 @@ strlit          L?\"{scharseq}\"
 
 id              {nondigit}({nondigit}|{digit})*
 
+comment         "//".*
+
 /* Preprocessor output */
 gccline         "# "{digitseq}" "
 gccout          {gccline}{strlit}
@@ -67,6 +69,7 @@ gccout          {gccline}{strlit}
                 /* Ignore */
 "\n"            {++line_number;}
 {ws}            {}
+{comment}       {}
 
                 /* Handle preprocessor output */
 {gccout}        {line_number = atoi(yytext+2)-1; yytext[yyleng-1] = '\0'; strcpy(filename, strchr(yytext, '"')+1);}

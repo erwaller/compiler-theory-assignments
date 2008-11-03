@@ -101,10 +101,11 @@
 %type <i> una_post
 
 %left ','
-%left '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
+%right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
 %left '?' ':'
 %left '+' '-'
 %left '*' '/' '%' SHL SHR '&' '|' '^' '~'
+%left UNPM
 
 %% /* Grammar rules and actions follow. */ 
 
@@ -147,9 +148,9 @@ exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == 
                                       } }
             | una_post              { $$ = $1;                              }
             | '(' exp ')'           { $$ = $2;                              }
-            | '+' exp               { $$ = $2;                              }
-            | '-' exp               { $$ = $2 * -1;                         }
-            | '~' exp               { $$ = ~$2;                             }
+            | '+' exp %prec UNPM    { $$ = $2;                              }
+            | '-' exp %prec UNPM    { $$ = $2 * -1;                         }
+            | '~' exp %prec UNPM    { $$ = ~$2;                             }
             | exp '+' exp           { $$ = $1 + $3;                         }
             | exp '-' exp           { $$ = $1 - $3;                         }
             | exp '*' exp           { $$ = $1 * $3;                         }
@@ -168,7 +169,7 @@ exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == 
             | exp '|' exp           { $$ = $1 | $3;                         }
             | exp '^' exp           { $$ = $1 ^ $3;                         }
             | lval '(' ')'          { $$ = 0; fprintf(stderr, "%s:%d:Warning:Function calls not implemented\n", filename, line_number); }
-            | lval '=' exp          { $$ = write_sym(sym_tbl, $1, $3) ? $3 : 0 }
+            | lval '=' exp          { $$ = $3; write_sym(sym_tbl, $1, $3);  }
             | lval PLUSEQ exp       { int t; read_sym(sym_tbl, $1, &t);
                                       $$ = t+$3;
                                       write_sym(sym_tbl, $1, $$);           }

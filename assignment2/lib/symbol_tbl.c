@@ -3,7 +3,7 @@
 #include <string.h>
 #include "symbol_tbl.h"
 
-extern char* filename;
+extern char filename[];
 extern int line_number;
 
 void* my_malloc(unsigned int size) {
