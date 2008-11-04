@@ -1,0 +1,230 @@
+			ECE466  -  Compilers		Fall 2008
+
+				ASSIGNMENT #3
+
+At the conclusion of this assignment, your compiler will be able to
+parse C language declarations and construct an internal representation
+of symbols and types.
+
+Having finished assignment#2, you have a primitive but functional
+symbol table which understands nested scopes, and the grammar rules
+for C expressions.  Place the latter aside for now, but keep in mind
+that the next assignment will involve parsing expressions and constructing
+internal representations of them.  It's a good idea to leave the expression
+grammar in your .y file, and strip out the actions from assignment #2.
+This will ensure that there are no parse conflicts caused by the
+expression grammar.
+
+Your symbol table needs to be extended to support:
+	* Attribute sets for the different roles which
+		IDENTIFIERs play in the C language.
+	* Support for separate namespaces (e.g. tags and labels )
+	* Installing a new symbol and reporting conflicting definitions
+
+You will need to develop a system of representing types.  This system
+may also be extended later to represent expressions and statements.
+The lecture notes and class discussion cover methods of doing this.
+You'll also need a way of "dumping" such an internal representation
+data structure to a human-readable format, so that you can debug and
+verify the operation of your compiler.
+
+		THINGS YOU DON'T HAVE TO DO:
+
+In order to simplify the compiler and make it feasible as a one-semester
+project, a number of C language features will be removed from the
+spec.  You may attempt them for your own amusement, but in some
+cases they are so difficult that doing so is not advised.
+With regard to Assignment #3, the following items are optional:
+
+ Initialized declarations
+	this will be impossible until we develop a scheme for
+	representing expressions
+ complicated constant expressions
+	e.g. you don't have to parse char a[2+2];  You may assume
+	that array declarators are either [] or [NUMBER]
+ C99 variable-length arrays (very difficult)
+ Qualifiers such as const, volatile and restrict
+	however, you should still recognize those keywords in the grammar
+ C99 inline functions	
+ enums (not that difficult)
+ bit fields in structure definitions
+ prototypes/formal parameter lists (moderately difficult)
+ K&R-style function definitions
+ typedefs:
+	getting a simple typedef mechanism to work is not too difficult,
+	but handling all possible cases including ambiguity involving
+	typedef names getting redfined in a declaration, is extremely
+	difficult.  The lecture notes contain a discussion of some 
+	pathological cases.
+
+For Assignment #3, there are no statements in the language, only declarations
+and blocks (compound_statement).  However, since a function DEFINITION consists
+of declaration specifiers (e.g. double), followed by a declarator
+establishing a type of "function", followed by a compound statement,
+you will be able to handle parsing functions, including entering and
+exiting their scopes, as you did in assignment #2.
+
+
+
+
+So, here are the requirements for assignment #2:
+
+1) Your program will accept the output of cpp (gcc -E), just like
+	in assignment #1.
+
+2) Whenever you see a declaration of an identifier as a function,
+	typedef or variable, you will print out the following:
+		- name of the identifier being declared
+		- file/line at which the declaration is effective
+		- the scope in which the declaration is rooted
+			(give type of scope (e.g. global, prototype, function)
+					and file/line of scope start )
+		- what the identifier is being used for (typedef,var,fn)
+		- storage class (if applicable)
+		- type (more below)
+
+3) In several places you will need to output a human-readable representation
+	of whatever internal data structures you create to manipulate
+	types.  As types have a potentially complicated, nested structure,
+	one possible choice is a series of indented lines, e.g.
+		pointer to
+		   pointer to
+		     array of 10 elements of type
+		       pointer to
+		         int
+
+	You could also output the result in the style of a C type name:
+		(int *(**)[10])
+	The latter is more compact but also harder to generate and more
+	confusing to read, especially if you, yourself, are having difficulty
+	following C type name abstract declarator syntax!
+
+4) Whenever a struct or union is DEFINED (i.e. with a pair of braces
+	and a list of members inside), print out the file/line at
+	which this definition is happening, and the scope in which it is
+	rooted (remember, nested struct/union definitions are not rooted in
+	the struct/union scope itself).  Then print out the declaration
+	of each member.  Depending on how you handle the table of members,
+	it may not be convenient to list the members in the order of
+	their declaration, so you don't have to do that...just make sure
+	to cover all of the members.
+
+5) When a type involves a struct/union reference, print out the
+	tag and where that struct/union type is defined, or (incomplete)
+	if the definition has not been seen yet.  E.g.:
+
+		INPUT:
+struct foo {
+int a;
+};
+
+
+		OUTPUT:
+struct foo definition at <stdin>:1{
+a is defined at <stdin>:2 [in struct/union scope starting at <stdin>:1] as a 
+field of struct foo  off=0 bit_off=0 bit_wid=0, type:
+  int
+} 
+
+struct foo *p;
+p is defined at <stdin>:4 [in global scope starting at <stdin>:1] as a 
+variable with stgclass extern  of type:
+  pointer to 
+   struct foo (defined at <stdin>:1)
+
+
+6) Output reasonable error messages for semantically invalid things,
+	such as attempted re-declarations, invalid types, etc.
+	
+
+
+
+			SUGGESTIONS AND ISSUES
+
+The BNF grammar which appears in the C99 standard or in Harbison & Steele
+is a good starting point.  Both use the notation _opt to indicate an
+"optional" symbol.  This, of course, is not something which yacc/bison
+provides.  foo_opt is equivalent to:
+  foo_opt:	/*empty*/
+	|foo
+	;
+You might find that it is better to "inline" some of these opt cases
+to avoid trouble with the LALR(1) algorithm, e.g.:
+  array_decl: decl '[' const_expr_opt ']'
+could be re-written as
+  array_decl: 	decl '[' const_expr ']'
+  		|decl '[' const_expr ']'
+		;
+Note that Harbison & Steele had an error in the printing of the grammar.
+In the rule for declaration, declarator_init_list should be optional,
+otherwise
+		struct a {int a;};
+is not recognized.  The C99 standard has it right.  Your professor took
+another approach and explicitly added the rules for struct/union def ';'
+and struct/union ref ';'
+
+Don't get too bogged down on error reporting and recovery.  It is acceptable
+to just print a helpful error message giving the file and line at which
+the error is detected, perhaps off by a line or two, and exit.  We can
+go back later and improve error handling.
+
+Don't worry too much about efficient memory allocation.  We'll discuss
+these issues in class soon.  For now, your best bet
+is to just malloc what you need and never free it.  For the limited
+exercises that you will be doing, the chances of you exhausting memory
+are pretty slim.
+
+			OPTIONAL STUFF
+If you plan on tackling prototypes/parameter lists at this time,
+there are some things you should know.  If you wish to skip this
+optional part, stop reading now and just get started on this assignment.
+
+The distinction between function DECLARATION and function DEFINITION
+is subtle and tricky.  The following
+	int f(char *p,int a);
+declares the identifier f to be the name of a function which returns
+int and has an argument prototype of (char *,int).  This declaration
+is rooted in whatever the current scope is.  It could appear inside
+of a function definition, block, or even a struct/union definition (except
+for the slight problem that functions can not be members of struct/union,
+pointers to function are OK).
+
+Now, consider 
+	int f(char *p,int a)
+	{
+		/*...*/
+	}
+this contains both a DECLARATION of f in the current scope and begins
+a DEFINITION of f too.  The declaration takes effect, according to the
+C standard, at the end of the declarator of which f is a part, i.e.
+at the closing parenthesis.  The function DEFINITION also begins a
+new scope, and the arguments p and a are implicitly declared within
+that scope.  That declaration of the arguments along with their names
+disappears at the closing brace, but the declaration of f's return type
+and argument prototype survives.
+
+Unfortunately for you, the compiler writer, both declarations
+and definitions of functions begin with a declarator.  You don't know,
+when seeing the opening parenthesis, what you are ultimately going to
+get, because the parser is only looking one token ahead.  The approach
+which your professor took is to save both the types and the names with
+the prototype, and then when it is apparent that a function definition
+is starting, to re-process that prototype to declare each formal
+parameter in the function's scope.
+
+Your professor is also a fan of the older K&R syntax:
+	int f(p,a)
+	char *p;
+	{
+		/*...*/
+	}
+It is necessary to insert a semantic action just before the opening
+brace to re-examine the formal parameter list and match the parameters
+up with declarations which were made in K&R style.  It is also necessary
+to do the implicit int declarations.
+
+Formal parameters to functions which are of type "array of X" or
+"function returning Y" are automatically converted to "pointer to X"
+or "pointer to function returning Y", as discussed in class, H&S and
+the C99 standard.  You should apply those conversions when you process
+the prototype.
