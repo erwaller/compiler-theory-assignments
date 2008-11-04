@@ -105,7 +105,8 @@
 %left '?' ':'
 %left '+' '-'
 %left '*' '/' '%' SHL SHR '&' '|' '^' '~'
-%left UNPM
+%left UNPM '!'
+%nonassoc '<' '>' LTEQ GTEQ EQEQ NOTEQ LOGAND LOGOR
 
 %% /* Grammar rules and actions follow. */ 
 
@@ -168,6 +169,15 @@ exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == 
             | exp '&' exp           { $$ = $1 & $3;                         }
             | exp '|' exp           { $$ = $1 | $3;                         }
             | exp '^' exp           { $$ = $1 ^ $3;                         }
+            | '!' exp               { $$ = !$2;                             }
+            | exp '<' exp             { $$ = $1 < $3;                         }
+            | exp '>' exp             { $$ = $1 > $3;                         }
+            | exp LTEQ exp          { $$ = $1 <= $3;                        }
+            | exp GTEQ exp          { $$ = $1 >= $3;                        }
+            | exp EQEQ exp          { $$ = $1 == $3;                        }
+            | exp NOTEQ exp         { $$ = $1 != $3;                        }
+            | exp LOGAND exp        { $$ = $1 && $3;                        }
+            | exp LOGOR exp         { $$ = $1 || $3;                        }
             | lval '(' ')'          { $$ = 0; fprintf(stderr, "%s:%d:Warning:Function calls not implemented\n", filename, line_number); }
             | lval '=' exp          { $$ = $3; write_sym(sym_tbl, $1, $3);  }
             | lval PLUSEQ exp       { int t; read_sym(sym_tbl, $1, &t);
