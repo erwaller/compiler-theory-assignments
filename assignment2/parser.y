@@ -99,6 +99,7 @@
 %type <s> lval
 %type <i> exp
 %type <i> una_post
+%type <s> function
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -114,9 +115,12 @@ input:        global_stmt                   {}
             | input global_stmt             {};
             
 global_stmt:  decl                  {}
-            | IDENT '(' ')' block   { new_sym(sym_tbl, $1); };
+            | function              { new_sym(sym_tbl, $1); };
             
-block:      open block_list close   {};
+function:     IDENT '(' ')' block   { $$ = $1;                              }
+            | INT IDENT '(' ')' block  { $$ = $2;                           };
+            
+block:        open block_list close {};
 
 open:         '{'                   { open_scope(sym_tbl);                  };
 
