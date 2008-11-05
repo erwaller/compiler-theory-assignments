@@ -118,7 +118,8 @@ global_stmt:  decl                  {}
             | function              { new_sym(sym_tbl, $1); };
             
 function:     IDENT '(' ')' block   { $$ = $1;                              }
-            | INT IDENT '(' ')' block  { $$ = $2;                           };
+            | INT IDENT '(' ')' block  { $$ = $2;                           }
+            | INT '*' IDENT '(' ')' block   { $$ = $3;                      };
             
 block:        open block_list close {};
 

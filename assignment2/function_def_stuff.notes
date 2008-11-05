@@ -1,0 +1,41 @@
+type_spec:    VOID 
+            | CHAR 
+            | SHORT 
+            | INT 
+            | LONG 
+            | FLOAT 
+            | DOUBLE 
+            | SIGNED 
+            | UNSIGNED
+            
+declaration: 
+            declaration-speciﬁers init-declarator-listopt ; 
+declaration-speciﬁers: 
+            storage-class-speciﬁer declaration-speciﬁersopt 
+            type-speciﬁer declaration-speciﬁersopt 
+            type-qualiﬁer declaration-speciﬁersopt 
+            function-speciﬁer declaration-speciﬁersopt 
+init-declarator-list: 
+            init-declarator 
+            init-declarator-list ,init-declarator 
+init-declarator: 
+            declarator 
+            declarator =initializer
+            
+declarator: 
+            pointeropt direct-declarator 
+direct-declarator: 
+            identiﬁer 
+            (declarator ) 
+            direct-declarator[type-qualiﬁer-listopt assignment-expressionopt ] 
+            direct-declarator[statictype-qualiﬁer-listopt assignment-expression] 
+            direct-declarator[type-qualiﬁer-list static assignment-expression] 
+            direct-declarator[type-qualiﬁer-listopt *] 
+            direct-declarator(parameter-type-list) 
+            direct-declarator(identiﬁer-listopt ) 
+pointer: 
+            * type-qualiﬁer-listopt 
+            *type-qualiﬁer-listopt pointer 
+type-qualiﬁer-list: 
+            type-qualiﬁer 
+            type-qualiﬁer-list type-qualiﬁer
