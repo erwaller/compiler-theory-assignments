@@ -1,5 +1,3 @@
-/* Reverse polish notation calculator. */ 
-
 %{
     #include <math.h>
     #include <stdio.h>

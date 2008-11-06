@@ -1,0 +1,8 @@
+
+struct/union symbol table
+
+private symbol tables for the members of each of the struct/unions
+
+variable/function symbol table
+
+
