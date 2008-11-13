@@ -15,6 +15,7 @@ typedef struct AST {
     int num;
 } ast;
 
-ast* ast_newnode(int nodetype);
+ast* ast_binop(int binop, ast* left, ast* right);
+ast* ast_num(int value);
 
 #endif

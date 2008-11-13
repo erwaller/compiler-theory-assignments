@@ -28,6 +28,8 @@ struct symbol {
 struct scope {
     struct scope* prev;
     struct symbol* buckets[SYM_TBL_LEN];
+    char* file_start;
+    int line_start;
 };
 typedef struct {
     struct scope *current, *global;

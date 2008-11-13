@@ -135,6 +135,81 @@ stmt:         ';'
             
 decl:         INT dec_list ';'      {};
 
+
+
+
+        
+
+declaration:
+          decl_specs init_decl_list ';'
+          
+decl_specs:
+          storage_spec
+        | storage_spec decl_specs
+        | type_spec
+        | type_spec decl_specs
+        | type_qual
+        | type_qual decl_specs
+        | INLINE    /* The only function-specifier */
+        | INLINE decl_specs
+        
+init_decl_list:
+          declarator
+        | init_decl_list ',' declarator
+        
+declarator:
+          direct_decl
+        | pointer direct_decl
+
+direct_decl: 
+          IDENT
+        | '(' declarator ')'
+        | direct_decl '[' ']'
+        | direct_decl '[' NUMBER ']'
+        | direct_decl '(' ')'
+        | direct_decl '(' ident_list ')'
+
+pointer:
+          '*'
+        | '*' pointer
+        | '*' type_qual_list
+        | '*' type_qual_list pointer
+
+type_qual_list:
+          type_qual
+        | type_qual_list type_qual
+
+ident_list: 
+          IDENT 
+        | ident_list ',' IDENT
+        
+type_qual:
+          CONST
+        | RESTRICT
+        | VOLATILE
+        
+store_spec:
+          EXTERN
+        | STATIC
+        | AUTO
+        | REGISTER
+
+type_spec:
+          VOID
+        | CHAR
+        | SHORT
+        | INT
+        | LONG
+        | FLOAT
+        | DOUBLE
+        | SIGNED
+        | UNSIGNED
+        | su_spec
+
+
+
+
+
 exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == d)
                                         fprintf(stderr, "%s:%d:Warning:Truncating real number to integer\n", filename, line_number);
                                       switch ($<t>1) {
