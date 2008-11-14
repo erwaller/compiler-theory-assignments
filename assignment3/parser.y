@@ -1,5 +1,6 @@
 %{
     #include <math.h>
+    #include <string.h>
     #include <stdio.h>
     #include <ctype.h>
     #include "shared.h"
@@ -94,11 +95,6 @@
 %token _COMPLEX
 %token _IMAGINARY
 
-%type <s> lval
-%type <i> exp
-%type <i> una_post
-%type <s> function_def
-
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
 %left '?' ':'
@@ -114,7 +110,7 @@ input:        global_stmt                   {}
             
 global_stmt:  declaration           {}
             | function_def          {};
-            
+
 block:        open block_list close {};
 open:         '{'                   { open_scope(sym_tbl);                  };
 close:        '}'                   { close_scope(sym_tbl);                 };
@@ -128,13 +124,7 @@ stmt:         ';'
             | block                 {};
             
 function_def:
-          decl_specs declarator declaration_list_opt block  {}; 
-
-declaration_list:
-          declaration                   {}
-          declaration_list declaration  {};
-declaration_list_opt:
-        | declaration_list              {};
+          decl_specs declarator block   {}; 
 
 declaration:
           decl_specs init_decl_list ';' {};
@@ -199,109 +189,59 @@ type_spec:
         | SIGNED    {}
         | UNSIGNED  {};
 
+exp:        
+          NUMBER                {}
+        | una_post              {}
+        | '(' exp ')'           {}
+        | '+' exp %prec UNPM    {}
+        | '-' exp %prec UNPM    {}
+        | '~' exp %prec UNPM    {}
+        | exp '+' exp           {}
+        | exp '-' exp           {}
+        | exp '*' exp           {}
+        | exp '/' exp           {}
+        | exp '%' exp           {}
+        | exp SHL exp           {}
+        | exp SHR exp           {}
+        | exp '&' exp           {}
+        | exp '|' exp           {}
+        | exp '^' exp           {}
+        | '!' exp               {}
+        | exp '<' exp           {}
+        | exp '>' exp           {}
+        | exp LTEQ exp          {}
+        | exp GTEQ exp          {}
+        | exp EQEQ exp          {}
+        | exp NOTEQ exp         {}
+        | exp LOGAND exp        {}
+        | exp LOGOR exp         {}
+        | lval '(' ')'          {}
+        | lval '=' exp          {}
+        | lval PLUSEQ exp       {}
+        | lval MINUSEQ exp      {}
+        | lval TIMESEQ exp      {}
+        | lval DIVEQ exp        {}
+        | lval MODEQ exp        {}
+        | lval SHLEQ exp        {}
+        | lval SHREQ exp        {}
+        | lval ANDEQ exp        {}
+        | lval OREQ exp         {}
+        | lval XOREQ exp        {}
+        | exp ',' exp           {}
+        | exp '?' exp ':' exp   {};
 
-
-
-
-exp:          NUMBER                { if ($<t>1 == f || $<t>1 == ld || $<t>1 == d)
-                                        fprintf(stderr, "%s:%d:Warning:Truncating real number to integer\n", filename, line_number);
-                                      switch ($<t>1) {
-                                        case f:
-                                            $$ = (int)$<f>1;
-                                            break;
-                                        case ld:
-                                            $$ = (int)$<ld>1;
-                                            break;
-                                        case d:
-                                            $$ = (int)$<d>1;
-                                            break;
-                                        default:
-                                            $$ = $1;
-                                      } }
-            | una_post              { $$ = $1;                              }
-            | '(' exp ')'           { $$ = $2;                              }
-            | '+' exp %prec UNPM    { $$ = $2;                              }
-            | '-' exp %prec UNPM    { $$ = $2 * -1;                         }
-            | '~' exp %prec UNPM    { $$ = ~$2;                             }
-            | exp '+' exp           { $$ = $1 + $3;                         }
-            | exp '-' exp           { $$ = $1 - $3;                         }
-            | exp '*' exp           { $$ = $1 * $3;                         }
-            | exp '/' exp           {
-                    if ($3)
-                        $$ = $1 / $3;
-                    else {
-                        $$ = 0;
-                        fprintf (stderr, "Division by zero\n");
-                    }
-                }
-            | exp '%' exp           { $$ = $1 % $3;                         }
-            | exp SHL exp           { $$ = $1 << $3;                        }
-            | exp SHR exp           { $$ = $1 >> $3;                        }
-            | exp '&' exp           { $$ = $1 & $3;                         }
-            | exp '|' exp           { $$ = $1 | $3;                         }
-            | exp '^' exp           { $$ = $1 ^ $3;                         }
-            | '!' exp               { $$ = !$2;                             }
-            | exp '<' exp             { $$ = $1 < $3;                         }
-            | exp '>' exp             { $$ = $1 > $3;                         }
-            | exp LTEQ exp          { $$ = $1 <= $3;                        }
-            | exp GTEQ exp          { $$ = $1 >= $3;                        }
-            | exp EQEQ exp          { $$ = $1 == $3;                        }
-            | exp NOTEQ exp         { $$ = $1 != $3;                        }
-            | exp LOGAND exp        { $$ = $1 && $3;                        }
-            | exp LOGOR exp         { $$ = $1 || $3;                        }
-            | lval '(' ')'          { $$ = 0; fprintf(stderr, "%s:%d:Warning:Function calls not implemented\n", filename, line_number); }
-            | lval '=' exp          { $$ = $3; write_sym(sym_tbl, $1, $3);  }
-            | lval PLUSEQ exp       { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t+$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval MINUSEQ exp      { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t-$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval TIMESEQ exp      { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t*$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval DIVEQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t/$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval MODEQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t%$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval SHLEQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t<<$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval SHREQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t>>$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval ANDEQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t&$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval OREQ exp         { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t|$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | lval XOREQ exp        { int t; read_sym(sym_tbl, $1, &t);
-                                      $$ = t^$3;
-                                      write_sym(sym_tbl, $1, $$);           }
-            | exp ',' exp           { $$ = $3;                              }
-            | exp '?' exp ':' exp   { $$ = $1 ? $3 : $5                     };
-
-una_post:     lval                  { if (!read_sym(sym_tbl, $1, &$$)) $$ = 0; }
-            | lval PLUSPLUS         { int t1; read_sym(sym_tbl, $1, &t1);
-                                      $$ = t1; t1 = t1 + 1;
-                                      write_sym(sym_tbl, $1, t1);           }
-            | lval MINUSMINUS       { int t1; read_sym(sym_tbl, $1, &t1);
-                                      $$ = t1; t1 = t1 - 1;
-                                      write_sym(sym_tbl, $1, t1);           }
-            | PLUSPLUS lval         { int t1; read_sym(sym_tbl, $2, &t1);
-                                      t1 = t1 + 1; $$ = t1;
-                                      write_sym(sym_tbl, $2, t1);           }
-            | MINUSMINUS lval       { int t1; read_sym(sym_tbl, $2, &t1);
-                                      t1 = t1 - 1; $$ = t1;
-                                      write_sym(sym_tbl, $2, t1);           };
+una_post:
+          lval                  {}
+        | lval PLUSPLUS         {}
+        | lval MINUSMINUS       {}
+        | PLUSPLUS lval         {}
+        | MINUSMINUS lval       {};
                                       
-lval:         IDENT                 { $$ = $1;                              }
-            | lval '[' exp ']'      { fprintf(stderr, "%s:%d:Warning:Arrays not implemented\n", filename, line_number); }
-            | lval '.' IDENT        { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); }
-            | lval INDSEL IDENT     { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); };
+lval:
+          IDENT                 {}
+        | lval '[' exp ']'      {}
+        | lval '.' IDENT        {}
+        | lval INDSEL IDENT     {};
 
 %% 
 
@@ -309,10 +249,12 @@ int
 main (void) 
 {
     init_symbol_tbl(&sym_tbl);
+    strcpy(filename, "<stdin>");
     return yyparse(); 
 }
 
 void yyerror (char const *error)
 {
     fprintf(stderr, "\nERROR: %s\n", error);
+    fprintf(stderr, "at %s:%d\n", filename, line_number);
 }
