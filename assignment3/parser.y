@@ -97,7 +97,7 @@
 %type <s> lval
 %type <i> exp
 %type <i> una_post
-%type <s> function
+%type <s> function_def
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -112,99 +112,92 @@
 input:        global_stmt                   {}
             | input global_stmt             {};
             
-global_stmt:  decl                  {}
-            | function              { new_sym(sym_tbl, $1); };
-            
-function:     IDENT '(' ')' block   { $$ = $1;                              }
-            | INT IDENT '(' ')' block  { $$ = $2;                           }
-            | INT '*' IDENT '(' ')' block   { $$ = $3;                      };
+global_stmt:  declaration           {}
+            | function_def          {};
             
 block:        open block_list close {};
-
 open:         '{'                   { open_scope(sym_tbl);                  };
-
 close:        '}'                   { close_scope(sym_tbl);                 };
 
 block_list:   stmt                  {}
             | block_list stmt       {};
             
 stmt:         ';'
-            | exp ';'               { printf("%s:%d: exprval=%d\n", filename, line_number, $1); }
-            | decl                  {}
+            | exp ';'               {}
+            | declaration           {}
             | block                 {};
             
-decl:         INT dec_list ';'      {};
+function_def:
+          decl_specs declarator declaration_list_opt block  {}; 
 
-
-
-
-        
+declaration_list:
+          declaration                   {}
+          declaration_list declaration  {};
+declaration_list_opt:
+        | declaration_list              {};
 
 declaration:
-          decl_specs init_decl_list ';'
-          
+          decl_specs init_decl_list ';' {};
+
 decl_specs:
-          storage_spec
-        | storage_spec decl_specs
-        | type_spec
-        | type_spec decl_specs
-        | type_qual
-        | type_qual decl_specs
-        | INLINE    /* The only function-specifier */
-        | INLINE decl_specs
+          storage_spec decl_specs_opt   {}
+        | type_spec decl_specs_opt      {}
+        | type_qual decl_specs_opt      {}
+        | INLINE decl_specs_opt         {};     /* The only function-specifier */
+decl_specs_opt:
+        | decl_specs    {};
         
 init_decl_list:
-          declarator
-        | init_decl_list ',' declarator
+          declarator                    {}
+        | init_decl_list ',' declarator {};
         
 declarator:
-          direct_decl
-        | pointer direct_decl
+          direct_decl           {}
+        | pointer direct_decl   {};
 
 direct_decl: 
-          IDENT
-        | '(' declarator ')'
-        | direct_decl '[' ']'
-        | direct_decl '[' NUMBER ']'
-        | direct_decl '(' ')'
-        | direct_decl '(' ident_list ')'
+          IDENT                             {}
+        | '(' declarator ')'                {}
+        | direct_decl '[' ']'               {}
+        | direct_decl '[' NUMBER ']'        {}
+        | direct_decl '(' ')'               {}
+        | direct_decl '(' ident_list ')'    {};
 
 pointer:
-          '*'
-        | '*' pointer
-        | '*' type_qual_list
-        | '*' type_qual_list pointer
+          '*'                           {}
+        | '*' pointer                   {}
+        | '*' type_qual_list            {}
+        | '*' type_qual_list pointer    {};
 
 type_qual_list:
-          type_qual
-        | type_qual_list type_qual
+          type_qual                 {}
+        | type_qual_list type_qual  {};
 
 ident_list: 
-          IDENT 
-        | ident_list ',' IDENT
+          IDENT                     {}
+        | ident_list ',' IDENT      {};
         
 type_qual:
-          CONST
-        | RESTRICT
-        | VOLATILE
+          CONST     {}
+        | RESTRICT  {}
+        | VOLATILE  {};
         
-store_spec:
-          EXTERN
-        | STATIC
-        | AUTO
-        | REGISTER
+storage_spec:
+          EXTERN    {}
+        | STATIC    {}
+        | AUTO      {}
+        | REGISTER  {};
 
 type_spec:
-          VOID
-        | CHAR
-        | SHORT
-        | INT
-        | LONG
-        | FLOAT
-        | DOUBLE
-        | SIGNED
-        | UNSIGNED
-        | su_spec
+          VOID      {}
+        | CHAR      {}
+        | SHORT     {}
+        | INT       {}
+        | LONG      {}
+        | FLOAT     {}
+        | DOUBLE    {}
+        | SIGNED    {}
+        | UNSIGNED  {};
 
 
 
@@ -309,9 +302,6 @@ lval:         IDENT                 { $$ = $1;                              }
             | lval '[' exp ']'      { fprintf(stderr, "%s:%d:Warning:Arrays not implemented\n", filename, line_number); }
             | lval '.' IDENT        { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); }
             | lval INDSEL IDENT     { fprintf(stderr, "%s:%d:Warning:Struct/union not implemented\n", filename, line_number); };
-
-dec_list:     IDENT                 { new_sym(sym_tbl, $1);                 }
-            | dec_list ',' IDENT    { new_sym(sym_tbl, $3);                 };
 
 %% 
 
