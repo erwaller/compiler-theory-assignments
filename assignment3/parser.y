@@ -92,7 +92,7 @@
 %token _COMPLEX
 %token _IMAGINARY
 
-%type <n> stmt block_list
+%type <n> stmt block_list block function_def global_stmt
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -108,22 +108,22 @@ input:        global_stmt                   {}
             | input global_stmt             {};
             
 global_stmt:  declaration           {}
-            | function_def          {};
+            | function_def          { ast_print($1); };
 
-block:        open block_list close {};
+block:        open block_list close { $$ = $2;                              };
 open:         '{'                   { open_scope(sym_tbl);                  };
 close:        '}'                   { close_scope(sym_tbl);                 };
 
-block_list:   stmt                  { $$ = ast_block(); ast_block_addstmt($$, $1); }
-            | block_list stmt       { ast_block_addstmt($$, $2); };
+block_list:   stmt                  { $$ = ast_block(); ast_block_addstmt($$, $1);  }
+            | block_list stmt       { $$ = $1; ast_block_addstmt($$, $2);           };
             
-stmt:         ';'                   { $$ = ast_stmt(); }
-            | exp ';'               { $$ = ast_stmt(); }
-            | declaration           { $$ = ast_stmt(); }
-            | block                 { $$ = ast_stmt(); };
+stmt:         ';'                   { $$ = ast_stmt();  }
+            | exp ';'               { $$ = ast_stmt();  }
+            | declaration           { $$ = ast_stmt();  }
+            | block                 { $$ = $1;          };
             
 function_def:
-          decl_specs declarator block   { printf("function def\n"); }; 
+          decl_specs declarator block   { $$ = ast_funcdef($3); }; 
 
 declaration:
           decl_specs init_decl_list ';' {};
@@ -137,8 +137,8 @@ decl_specs_opt:
         | decl_specs    {};
         
 init_decl_list:
-          declarator                    { printf("declarator\n"); }
-        | init_decl_list ',' declarator { printf("declarator\n"); };
+          declarator                    {}
+        | init_decl_list ',' declarator {};
         
 declarator:
           direct_decl           {}
