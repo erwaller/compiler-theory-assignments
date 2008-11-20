@@ -7,16 +7,20 @@ ast* ast_newnode(int nodetype) {
     return node;
 }
 
-ast* ast_binop(int binop, ast* left, ast* right) {
-    ast* node = ast_newnode(AST_BINOP);
-    node->binop = binop;
-    node->left = left;
-    node->right = right;
+ast* ast_stmt() {
+    ast* node = ast_newnode(AST_STMT);
     return node;
 }
 
-ast* ast_num(int value) {
-    ast* node = ast_newnode(AST_NUM);
-    node->num = value;
+ast* ast_block() {
+    ast* node = ast_newnode(AST_BLOCK_LIST);
     return node;
+}
+
+ast* ast_block_addstmt(ast* block, ast* stmt) {
+    ast* insert = block->stmt_list;
+    while(insert != NULL)
+        insert = insert->stmt_list;
+    insert = stmt;
+    return block;
 }

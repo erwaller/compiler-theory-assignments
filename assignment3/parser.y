@@ -4,11 +4,7 @@
     #include <stdio.h>
     #include <ctype.h>
     #include "shared.h"
-    #include "lib/symbol_tbl.h"
-    extern char* yytext;
-    extern int yyleng;
-    extern int line_number;
-    extern char filename[];
+    
     int yylex (void); 
     void yyerror (char const *);
     symbol_tbl *sym_tbl;
@@ -28,6 +24,7 @@
     struct { int t; double d; };
     struct { int t; float f; };
     struct { int t; long double ld; };
+    struct { int t; ast* n; };
 }
 
 %token TOKEOF 0
@@ -95,6 +92,8 @@
 %token _COMPLEX
 %token _IMAGINARY
 
+%type <n> stmt block_list
+
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
 %left '?' ':'
@@ -115,16 +114,16 @@ block:        open block_list close {};
 open:         '{'                   { open_scope(sym_tbl);                  };
 close:        '}'                   { close_scope(sym_tbl);                 };
 
-block_list:   stmt                  {}
-            | block_list stmt       {};
+block_list:   stmt                  { $$ = ast_block(); ast_block_addstmt($$, $1); }
+            | block_list stmt       { ast_block_addstmt($$, $2); };
             
-stmt:         ';'
-            | exp ';'               {}
-            | declaration           {}
-            | block                 {};
+stmt:         ';'                   { $$ = ast_stmt(); }
+            | exp ';'               { $$ = ast_stmt(); }
+            | declaration           { $$ = ast_stmt(); }
+            | block                 { $$ = ast_stmt(); };
             
 function_def:
-          decl_specs declarator block   {}; 
+          decl_specs declarator block   { printf("function def\n"); }; 
 
 declaration:
           decl_specs init_decl_list ';' {};
@@ -138,8 +137,8 @@ decl_specs_opt:
         | decl_specs    {};
         
 init_decl_list:
-          declarator                    {}
-        | init_decl_list ',' declarator {};
+          declarator                    { printf("declarator\n"); }
+        | init_decl_list ',' declarator { printf("declarator\n"); };
         
 declarator:
           direct_decl           {}
