@@ -12,8 +12,13 @@ ast* ast_stmt() {
     return node;
 }
 
-ast* ast_decl() {
-    ast* node = ast_newnode(AST_DECL);
+ast* ast_decln() {
+    ast* node = ast_newnode(AST_DECLN);
+    return node;
+}
+
+ast* ast_declr() {
+    ast* node = ast_newnode(AST_DECLR);
     return node;
 }
 
@@ -24,22 +29,27 @@ ast* ast_block() {
 
 ast* ast_block_addstmt(ast* block, ast* stmt) {
     ast** insert;
-    insert = &block->stmt_list;
+    insert = &block->first_stmt;
     while(*insert != NULL)
-        insert = &(*insert)->stmt_list;
+        insert = &(*insert)->next_stmt;
     *insert = stmt;
     return block;
 }
 
-ast* ast_funcdef(ast* funcblock) {
+ast* ast_funcdef(ast* declr, ast* block) {
     ast* node = ast_newnode(AST_FUNCDEF);
-    node->stmt_list = funcblock;
+    node->declr = declr;
+    node->block = block;
     return node;
 }
 
 void ast_print(ast* ast) {
     static int indent;
     int i = indent;
+    
+    // So that we don't have to check that node pointers
+    // are not null before we try to print them 
+    if (ast == NULL) return;
     
     while(i) {
         printf("\t");
@@ -48,37 +58,31 @@ void ast_print(ast* ast) {
     switch(ast->type) {
         case AST_FUNCDEF:
             printf("ast_funcdef\n");
-            if(ast->stmt_list) {
-                ++indent;
-                ast_print(ast->stmt_list);
-            }
-            if (indent > 0)
-                --indent;
+            ++indent;
+            ast_print(ast->declr);
+            ast_print(ast->block);
+            --indent;
             break;
         case AST_BLOCK:
             printf("ast_block\n");
-            if(ast->stmt_list) {
-                ++indent;
-                ast_print(ast->stmt_list);
-            }
-            if (indent > 0)
-                --indent;
+            ++indent;
+            ast_print(ast->first_stmt);
+            --indent;
+            ast_print(ast->next_stmt);
             break;
-        case AST_DECL:
-            printf("ast_decl\n");
-            if(ast->stmt_list)
-                ast_print(ast->stmt_list);
-            else if (indent > 0)
-                --indent;
+        case AST_DECLN:
+            printf("ast_decln\n");
+            ast_print(ast->next_stmt);
+            break;
+        case AST_DECLR:
+            printf("ast_declr\n");
             break;
         case AST_STMT:
             printf("ast_stmt\n");
-            if(ast->stmt_list)
-                ast_print(ast->stmt_list);
-            else if (indent > 0)
-                --indent;
+            ast_print(ast->next_stmt);
             break;
         default:
             fprintf(stderr, "BUG: Unexpectedly reached the default label in ast_print's switch\n");
     }
+    return;
 }

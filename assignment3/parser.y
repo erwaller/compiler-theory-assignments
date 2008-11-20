@@ -125,10 +125,10 @@ stmt:         ';'                   { $$ = ast_stmt();  }
             | block                 { $$ = $1;          };
             
 function_def:
-          decl_specs declarator block   { $$ = ast_funcdef($3); }; 
+          decl_specs declarator block   { $$ = ast_funcdef(ast_declr(), $3); }; 
 
 declaration:
-          decl_specs init_decl_list ';' { $$ = ast_decl(); };
+          decl_specs init_decl_list ';' { $$ = ast_decln(); };
 
 decl_specs:
           storage_spec decl_specs_opt   {}
@@ -169,26 +169,26 @@ ident_list:
         | ident_list ',' IDENT      {};
         
 type_qual:
-          CONST     { $$ = $1; }
-        | RESTRICT  { $$ = $1; }
-        | VOLATILE  { $$ = $1; };
+          CONST     { $$ = CONST;       }
+        | RESTRICT  { $$ = RESTRICT;    }
+        | VOLATILE  { $$ = VOLATILE;    };
         
 storage_spec:
-          EXTERN    { $$ = $1; }
-        | STATIC    { $$ = $1; }
-        | AUTO      { $$ = $1; }
-        | REGISTER  { $$ = $1; };
+          EXTERN    { $$ = EXTERN;      }
+        | STATIC    { $$ = STATIC;      }
+        | AUTO      { $$ = AUTO;        }
+        | REGISTER  { $$ = REGISTER;    };
 
 type_spec:
-          VOID      { $$ = $1; }
-        | CHAR      { $$ = $1; }
-        | SHORT     { $$ = $1; }
-        | INT       { $$ = $1; }
-        | LONG      { $$ = $1; }
-        | FLOAT     { $$ = $1; }
-        | DOUBLE    { $$ = $1; }
-        | SIGNED    { $$ = $1; }
-        | UNSIGNED  { $$ = $1; };
+          VOID      { $$ = VOID;        }
+        | CHAR      { $$ = CHAR;        }
+        | SHORT     { $$ = SHORT;       }
+        | INT       { $$ = INT;         }
+        | LONG      { $$ = LONG;        }
+        | FLOAT     { $$ = FLOAT;       }
+        | DOUBLE    { $$ = DOUBLE;      }
+        | SIGNED    { $$ = SIGNED;      }
+        | UNSIGNED  { $$ = UNSIGNED;    };
 
 exp:        
           NUMBER                {}

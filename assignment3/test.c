@@ -18,6 +18,16 @@ test2 ()
         int c;
         c = a*b;
     }
+    b = a;
+    {
+        b++;
+        {
+            int c;
+            c = b;
+        }
+    }
+    a++;
+    b++;
 }
 
 int unsigned
