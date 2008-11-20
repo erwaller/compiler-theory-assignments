@@ -25,6 +25,7 @@
     struct { int t; float f; };
     struct { int t; long double ld; };
     struct { int t; ast* n; };
+    struct { int t; int tok; };
 }
 
 %token TOKEOF 0
@@ -54,45 +55,46 @@
 %token ANDEQ
 %token OREQ
 %token XOREQ
-%token AUTO
-%token BREAK
-%token CASE
-%token CHAR
-%token CONST
-%token CONTINUE
-%token DEFAULT
-%token DO
-%token DOUBLE
-%token ELSE
-%token ENUM
-%token EXTERN
-%token FLOAT
-%token FOR
-%token GOTO
-%token IF
-%token INLINE
-%token INT
-%token LONG
-%token REGISTER
-%token RESTRICT
-%token RETURN
-%token SHORT
-%token SIGNED
-%token SIZEOF
-%token STATIC
-%token STRUCT
-%token SWITCH
-%token TYPEDEF
-%token UNION
-%token UNSIGNED
-%token VOID
-%token VOLATILE
-%token WHILE
+%token <tok> AUTO
+%token <tok> BREAK
+%token <tok> CASE
+%token <tok> CHAR
+%token <tok> CONST
+%token <tok> CONTINUE
+%token <tok> DEFAULT
+%token <tok> DO
+%token <tok> DOUBLE
+%token <tok> ELSE
+%token <tok> ENUM
+%token <tok> EXTERN
+%token <tok> FLOAT
+%token <tok> FOR
+%token <tok> GOTO
+%token <tok> IF
+%token <tok> INLINE
+%token <tok> INT
+%token <tok> LONG
+%token <tok> REGISTER
+%token <tok> RESTRICT
+%token <tok> RETURN
+%token <tok> SHORT
+%token <tok> SIGNED
+%token <tok> SIZEOF
+%token <tok> STATIC
+%token <tok> STRUCT
+%token <tok> SWITCH
+%token <tok> TYPEDEF
+%token <tok> UNION
+%token <tok> UNSIGNED
+%token <tok> VOID
+%token <tok> VOLATILE
+%token <tok> WHILE
 %token _BOOL
 %token _COMPLEX
 %token _IMAGINARY
 
-%type <n> stmt block_list block function_def global_stmt
+%type <tok> type_spec storage_spec type_qual
+%type <n> stmt declaration block_list block function_def global_stmt
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -107,8 +109,8 @@
 input:        global_stmt                   {}
             | input global_stmt             {};
             
-global_stmt:  declaration           {}
-            | function_def          { ast_print($1); };
+global_stmt:  declaration           { $$ = $1; ast_print($$); }
+            | function_def          { $$ = $1; ast_print($$); };
 
 block:        open block_list close { $$ = $2;                              };
 open:         '{'                   { open_scope(sym_tbl);                  };
@@ -119,14 +121,14 @@ block_list:   stmt                  { $$ = ast_block(); ast_block_addstmt($$, $1
             
 stmt:         ';'                   { $$ = ast_stmt();  }
             | exp ';'               { $$ = ast_stmt();  }
-            | declaration           { $$ = ast_stmt();  }
+            | declaration           { $$ = $1;          }
             | block                 { $$ = $1;          };
             
 function_def:
           decl_specs declarator block   { $$ = ast_funcdef($3); }; 
 
 declaration:
-          decl_specs init_decl_list ';' {};
+          decl_specs init_decl_list ';' { $$ = ast_decl(); };
 
 decl_specs:
           storage_spec decl_specs_opt   {}
@@ -134,7 +136,7 @@ decl_specs:
         | type_qual decl_specs_opt      {}
         | INLINE decl_specs_opt         {};     /* The only function-specifier */
 decl_specs_opt:
-        | decl_specs    {};
+        | decl_specs                    {};
         
 init_decl_list:
           declarator                    {}
@@ -153,40 +155,40 @@ direct_decl:
         | direct_decl '(' ident_list ')'    {};
 
 pointer:
-          '*'                           {}
-        | '*' pointer                   {}
-        | '*' type_qual_list            {}
-        | '*' type_qual_list pointer    {};
+          '*' type_qual_list_opt            {}
+        | '*' type_qual_list_opt pointer    {};
 
 type_qual_list:
           type_qual                 {}
         | type_qual_list type_qual  {};
+type_qual_list_opt:
+        | type_qual_list            {};
 
 ident_list: 
           IDENT                     {}
         | ident_list ',' IDENT      {};
         
 type_qual:
-          CONST     {}
-        | RESTRICT  {}
-        | VOLATILE  {};
+          CONST     { $$ = $1; }
+        | RESTRICT  { $$ = $1; }
+        | VOLATILE  { $$ = $1; };
         
 storage_spec:
-          EXTERN    {}
-        | STATIC    {}
-        | AUTO      {}
-        | REGISTER  {};
+          EXTERN    { $$ = $1; }
+        | STATIC    { $$ = $1; }
+        | AUTO      { $$ = $1; }
+        | REGISTER  { $$ = $1; };
 
 type_spec:
-          VOID      {}
-        | CHAR      {}
-        | SHORT     {}
-        | INT       {}
-        | LONG      {}
-        | FLOAT     {}
-        | DOUBLE    {}
-        | SIGNED    {}
-        | UNSIGNED  {};
+          VOID      { $$ = $1; }
+        | CHAR      { $$ = $1; }
+        | SHORT     { $$ = $1; }
+        | INT       { $$ = $1; }
+        | LONG      { $$ = $1; }
+        | FLOAT     { $$ = $1; }
+        | DOUBLE    { $$ = $1; }
+        | SIGNED    { $$ = $1; }
+        | UNSIGNED  { $$ = $1; };
 
 exp:        
           NUMBER                {}

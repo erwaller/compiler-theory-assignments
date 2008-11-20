@@ -64,6 +64,13 @@ void ast_print(ast* ast) {
             if (indent > 0)
                 --indent;
             break;
+        case AST_DECL:
+            printf("ast_decl\n");
+            if(ast->stmt_list)
+                ast_print(ast->stmt_list);
+            else if (indent > 0)
+                --indent;
+            break;
         case AST_STMT:
             printf("ast_stmt\n");
             if(ast->stmt_list)

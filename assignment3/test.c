@@ -1,3 +1,6 @@
+int j,k;
+unsigned int t;
+
 inline
 unsigned char
 test ()

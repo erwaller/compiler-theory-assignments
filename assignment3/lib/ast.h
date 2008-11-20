@@ -20,6 +20,7 @@ struct AST_NODE {
 };
 
 ast* ast_stmt();
+ast* ast_decl();
 ast* ast_block();
 ast* ast_block_addstmt();
 ast* ast_funcdef();
