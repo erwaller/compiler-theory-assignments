@@ -56,8 +56,8 @@ void ast_list_push(ast* ast_list, void* thing) {
 void ast_list_reverse(ast* ast_list) {
     list_reverse(ast_list->list);
 }
-void ast_list_concat(ast* ast_list) {
-    list_concat(ast_list->list);
+void ast_list_concat(ast* ast_list1, ast* ast_list2) {
+    list_concat(ast_list1->list, ast_list2->list);
 }
 
 ast* ast_block(ast* stmts) {
@@ -140,11 +140,20 @@ void ast_print(ast* ast) {
             //ast_print(ast->next_stmt);
             break;
         case AST_VAR:
-            //ast_print(ast->storage_specs);
-            //ast_print(ast->type_specs);
-            //ast_print(ast->type_quals);
             printf("ast_var\n");
-            INDENT(ast_print(ast->ctype));
+            ast_print(ast->ctype);
+            break;
+        case AST_LIST:
+            {
+                int old_indent = indent;
+                list_item* cur = ast->list->head;
+                while (cur != NULL) {
+                    ++indent;
+                    ast_print(cur->thing);
+                    cur = cur->next;
+                }
+                indent = old_indent;
+            }
             break;
         /*case AST_INTLISTITEM:
             switch(ast->val) {
@@ -170,12 +179,10 @@ void ast_print(ast* ast) {
             ast_print(ast->next);
             break;*/
         case AST_POINTER:
-            printf("ast_pointer\n");
-            INDENT(ast_print(ast->ctype));
+            printf("pointer to\n");
             break;
         case AST_ARRAY:
-            printf("ast_array of length: %d\n", ast->size);
-            INDENT(ast_print(ast->ctype));
+            printf("array of %d elements of type\n", ast->size);
             break;
         default:
             fprintf(stderr, "BUG: Unexpectedly reached the default label in ast_print's switch\n");

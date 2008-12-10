@@ -110,8 +110,8 @@
 input:        global_stmt           {}
             | input global_stmt     {};
             
-global_stmt:  declaration           { $$ = $1; ast_print($$); }
-            | function_def          { $$ = $1; ast_print($$); };
+global_stmt:  declaration           { $$ = $1; }
+            | function_def          { $$ = $1; };
 
 block:        open block_list close { $$ = ast_block($2);                   };
 open:         '{'                   { open_scope(sym_tbl);                  };
@@ -140,8 +140,8 @@ decl_specs_opt:                         { $$ = ast_declspecs(); }
         | decl_specs                    { $$ = $1;              };
         
 decl_list:
-          declarator                { $$ = ast_list(); ast_list_push($$, $1); ast_list_reverse($1->ctype);  }
-        | decl_list ',' declarator  { $$ = $1; ast_list_push($$, $3); ast_list_reverse($3->ctype);          };
+          declarator                { $$ = ast_list(); ast_list_push($$, $1); ast_print($1);  }
+        | decl_list ',' declarator  { $$ = $1; ast_list_push($$, $3); ast_print($3);          };
         
 // concat any type-nodes from the pointer list to the
 // ast_var ctype list and pass the ast_var
@@ -159,7 +159,7 @@ direct_decl:
 
 // Passing up an ast_list of type-nodes
 pointer:
-          '*' type_qual_list_opt            { $$ = ast_list(); ast_list_push($$, ast_pointer()) }
+          '*' type_qual_list_opt            { $$ = ast_list(); ast_list_push($$, ast_pointer()); }
         | '*' type_qual_list_opt pointer    { $$ = $3; ast_list_push($$, ast_pointer()); };
 
 type_qual_list:
