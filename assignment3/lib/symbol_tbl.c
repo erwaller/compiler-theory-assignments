@@ -44,7 +44,7 @@ int new_sym(scope *scope, char *ident, ast* ast_node) {
         }
         *bucket = (*bucket)->next;
     }
-    *bucket = my_malloc(sizeof(symbol));
+    ast_node->sym = *bucket = my_malloc(sizeof(symbol));
     my_strcpy(&(*bucket)->ident, ident);
     (*bucket)->ast_node = ast_node;
     return 1;

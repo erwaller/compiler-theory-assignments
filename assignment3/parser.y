@@ -93,9 +93,10 @@
 %token _COMPLEX
 %token _IMAGINARY
 
-%type <i>   type_spec storage_spec type_qual
+%type <n>   type_spec storage_spec type_qual
 %type <n>   stmt declaration block_list block function_def global_stmt
             decl_specs decl_list declarator direct_decl pointer decl_specs_opt
+            type_qual_list type_qual_list_opt
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -129,19 +130,26 @@ function_def:
           decl_specs declarator block   { $$ = ast_funcdef($2, $3); }; 
 
 declaration:
-          decl_specs decl_list ';'      { $$ = ast_decln($1, $2);   };
+          decl_specs decl_list ';'      { 
+                                            ast* decl = ast_list_first($2);
+                                            while(decl != NULL) {
+                                                ast_list_push(decl->ctype, $1->type_specs);
+                                                decl = ast_list_next($2);
+                                            }
+                                            ast_print($2);
+                                        };
 
 decl_specs:
-          storage_spec decl_specs_opt   { $$ = $2; ast_declspecs_addstoragespec($2, $1);    }
-        | type_spec decl_specs_opt      { $$ = $2; ast_declspecs_addtypespec($2, $1);       }
-        | type_qual decl_specs_opt      { $$ = $2; ast_declspecs_addtypequal($2, $1);       }
+          storage_spec decl_specs_opt   { $$ = $2; ast_list_push($2->storage_specs, $1); printf("pushing a storage spec\n");  }
+        | type_spec decl_specs_opt      { $$ = $2; ast_list_push($2->type_specs, $1);  }
+        | type_qual decl_specs_opt      { $$ = $2; ast_list_push($2->type_quals, $1);  }
         | INLINE decl_specs_opt         { $$ = $2; };   /* The only function-specifier */
 decl_specs_opt:                         { $$ = ast_declspecs(); }
         | decl_specs                    { $$ = $1;              };
         
 decl_list:
-          declarator                { $$ = ast_list(); ast_list_push($$, $1); ast_print($1);  }
-        | decl_list ',' declarator  { $$ = $1; ast_list_push($$, $3); ast_print($3);          };
+          declarator                { $$ = ast_list(); ast_list_push($$, $1);   }
+        | decl_list ',' declarator  { $$ = $1; ast_list_push($$, $3);           };
         
 // concat any type-nodes from the pointer list to the
 // ast_var ctype list and pass the ast_var
@@ -163,36 +171,36 @@ pointer:
         | '*' type_qual_list_opt pointer    { $$ = $3; ast_list_push($$, ast_pointer()); };
 
 type_qual_list:
-          type_qual                 {}
-        | type_qual_list type_qual  {};
+          type_qual                 { $$ = ast_list(); ast_list_push($$, $1);   }
+        | type_qual_list type_qual  { $$ = $1; ast_list_push($$, $2);           };
 type_qual_list_opt:
-        | type_qual_list            {};
+        | type_qual_list            { $$ = $1; };
 
 ident_list: 
           IDENT                     {}
         | ident_list ',' IDENT      {};
         
 type_qual:
-          CONST     { $$ = CONST;       }
-        | RESTRICT  { $$ = RESTRICT;    }
-        | VOLATILE  { $$ = VOLATILE;    };
+          CONST     { $$ = ast_typequal(CONST);       }
+        | RESTRICT  { $$ = ast_typequal(RESTRICT);    }
+        | VOLATILE  { $$ = ast_typequal(VOLATILE);    };
         
 storage_spec:
-          EXTERN    { $$ = EXTERN;      }
-        | STATIC    { $$ = STATIC;      }
-        | AUTO      { $$ = AUTO;        }
-        | REGISTER  { $$ = REGISTER;    };
+          EXTERN    { $$ = ast_storagespec(EXTERN);      }
+        | STATIC    { $$ = ast_storagespec(STATIC);      }
+        | AUTO      { $$ = ast_storagespec(AUTO);        }
+        | REGISTER  { $$ = ast_storagespec(REGISTER);    };
 
 type_spec:
-          VOID      { $$ = VOID;        }
-        | CHAR      { $$ = CHAR;        }
-        | SHORT     { $$ = SHORT;       }
-        | INT       { $$ = INT;         }
-        | LONG      { $$ = LONG;        }
-        | FLOAT     { $$ = FLOAT;       }
-        | DOUBLE    { $$ = DOUBLE;      }
-        | SIGNED    { $$ = SIGNED;      }
-        | UNSIGNED  { $$ = UNSIGNED;    };
+          VOID      { $$ = ast_typespec(VOID);        }
+        | CHAR      { $$ = ast_typespec(CHAR);        }
+        | SHORT     { $$ = ast_typespec(SHORT);       }
+        | INT       { $$ = ast_typespec(INT);         }
+        | LONG      { $$ = ast_typespec(LONG);        }
+        | FLOAT     { $$ = ast_typespec(FLOAT);       }
+        | DOUBLE    { $$ = ast_typespec(DOUBLE);      }
+        | SIGNED    { $$ = ast_typespec(SIGNED);      }
+        | UNSIGNED  { $$ = ast_typespec(UNSIGNED);    };
 
 exp:        
           NUMBER                {}
