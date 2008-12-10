@@ -1,15 +1,11 @@
 
     #include "shared.h"
-    #include "parser.tab.h"
     
     char* debug_token(int);
     void install_ident(void);
     void install_num(void);
     void print_num(void);
     void install_string(void);
-    
-    int line_number = 1;
-    char filename[BUFSIZ];
 
 %option noyywrap
 

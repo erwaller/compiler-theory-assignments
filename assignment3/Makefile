@@ -15,7 +15,10 @@ lex.yy.c: lexer.lex
 
 sym_test: sym_test.c lib/symbol_tbl.c lib/symbol_tbl.h
 	gcc -ggdb -o sym_test sym_test.c lib/symbol_tbl.c
-
+	
+tests: symbol_tbl.o ast.o tests/list_test.c
+	gcc -ggdb -o tests/list_test tests/list_test.c symbol_tbl.o ast.o
+	
 clean:
 	rm -f *.o
 	rm -f lex.yy.c

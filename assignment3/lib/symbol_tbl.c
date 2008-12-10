@@ -1,10 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "symbol_tbl.h"
-
-extern char filename[];
-extern int line_number;
+#include "../shared.h"
 
 void* my_malloc(unsigned int size) {
     void *ret;
@@ -16,19 +11,20 @@ void* my_malloc(unsigned int size) {
 }
 
 int init_symbol_tbl(symbol_tbl **sym_tbl) {
-    struct scope *global;
-    global = my_malloc(sizeof(struct scope));
+    scope *global;
+    global = my_malloc(sizeof(scope));
     *sym_tbl = my_malloc(sizeof(symbol_tbl));
     (*sym_tbl)->global = (*sym_tbl)->current = global;
     return 1;
 }
 
 int open_scope(symbol_tbl *sym_tbl) {
-    struct scope *cur, *new;
+    scope *cur, *new;
     cur = sym_tbl->current;
-    new = my_malloc(sizeof(struct scope));
+    new = my_malloc(sizeof(scope));
     new->prev = cur;
     sym_tbl->current = new;
+    new->is_func = 0;       // Don't know about function scopes yet
     return 1;
 }
 
@@ -38,9 +34,9 @@ int close_scope(symbol_tbl *sym_tbl) {
     return 1;
 }
 
-int new_sym(symbol_tbl *sym_tbl, char *ident) {
-    struct symbol **bucket, *new_sym;
-    bucket = &sym_tbl->current->buckets[hash(ident)%SYM_TBL_LEN];
+int new_sym(scope *scope, char *ident, ast* ast_node) {
+    symbol **bucket;
+    bucket = &scope->buckets[hash(ident)%SYM_TBL_LEN];
     while(*bucket != NULL) {
         if(strcmp((*bucket)->ident, ident) == 0) {
             fprintf(stderr, "%s:%d:Error:Identifier previously declared in this scope: %s\n", filename, line_number, ident);
@@ -48,15 +44,16 @@ int new_sym(symbol_tbl *sym_tbl, char *ident) {
         }
         *bucket = (*bucket)->next;
     }
-    *bucket = my_malloc(sizeof(struct symbol));
+    *bucket = my_malloc(sizeof(symbol));
     my_strcpy(&(*bucket)->ident, ident);
+    (*bucket)->ast_node = ast_node;
     return 1;
 }
 
 // Just pass the int by value for now to simplify embedded actions
 int write_sym(symbol_tbl *sym_tbl, char *ident, int src_val) {
-    struct symbol *sym;
-    struct scope *scope;
+    symbol *sym;
+    scope *scope;
     scope = sym_tbl->current;
     do {
         sym = scope->buckets[hash(ident)%SYM_TBL_LEN];
@@ -74,8 +71,8 @@ int write_sym(symbol_tbl *sym_tbl, char *ident, int src_val) {
 }
 
 int read_sym(symbol_tbl *sym_tbl, char *ident, int *dest_val) {
-    struct symbol *bucket, *sym;
-    struct scope *scope;
+    symbol *bucket, *sym;
+    scope *scope;
     scope = sym_tbl->current;
     do {
         sym = scope->buckets[hash(ident)%SYM_TBL_LEN];

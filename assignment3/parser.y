@@ -93,8 +93,9 @@
 %token _COMPLEX
 %token _IMAGINARY
 
-%type <tok> type_spec storage_spec type_qual
-%type <n> stmt declaration block_list block function_def global_stmt
+%type <i>   type_spec storage_spec type_qual
+%type <n>   stmt declaration block_list block function_def global_stmt
+            decl_specs decl_list declarator direct_decl pointer decl_specs_opt
 
 %left ','
 %right '=' PLUSEQ MINUSEQ TIMESEQ DIVEQ MODEQ SHLEQ SHREQ ANDEQ OREQ XOREQ
@@ -106,8 +107,8 @@
 
 %% /* Grammar rules and actions follow. */ 
 
-input:        global_stmt                   {}
-            | input global_stmt             {};
+input:        global_stmt           {}
+            | input global_stmt     {};
             
 global_stmt:  declaration           { $$ = $1; ast_print($$); }
             | function_def          { $$ = $1; ast_print($$); };
@@ -125,38 +126,38 @@ stmt:         ';'                   { $$ = ast_stmt();  }
             | block                 { $$ = $1;          };
             
 function_def:
-          decl_specs declarator block   { $$ = ast_funcdef(ast_declr(), $3); }; 
+          decl_specs declarator block   { $$ = ast_funcdef($2, $3); }; 
 
 declaration:
-          decl_specs init_decl_list ';' { $$ = ast_decln(); };
+          decl_specs decl_list ';'      { $$ = ast_decln($1, $2);   };
 
 decl_specs:
-          storage_spec decl_specs_opt   {}
-        | type_spec decl_specs_opt      {}
-        | type_qual decl_specs_opt      {}
-        | INLINE decl_specs_opt         {};     /* The only function-specifier */
-decl_specs_opt:
-        | decl_specs                    {};
+          storage_spec decl_specs_opt   { $$ = $2; ast_declspecs_addstoragespec($2, $1);    }
+        | type_spec decl_specs_opt      { $$ = $2; ast_declspecs_addtypespec($2, $1);       }
+        | type_qual decl_specs_opt      { $$ = $2; ast_declspecs_addtypequal($2, $1);       }
+        | INLINE decl_specs_opt         { $$ = $2; };   /* The only function-specifier */
+decl_specs_opt:                         { $$ = ast_declspecs(); }
+        | decl_specs                    { $$ = $1;              };
         
-init_decl_list:
-          declarator                    {}
-        | init_decl_list ',' declarator {};
+decl_list:
+          declarator                { $$ = ast_decllist(); ast_decllist_adddeclr($$, $1);   }
+        | decl_list ',' declarator  { $$ = $1; ast_decllist_adddeclr($1, $3);               };
         
 declarator:
-          direct_decl           {}
-        | pointer direct_decl   {};
+          direct_decl           { $$ = $1; }
+        | pointer direct_decl   { $$ = $2; ast_var_addtype($$, $1); };
 
 direct_decl: 
-          IDENT                             {}
-        | '(' declarator ')'                {}
+          IDENT                             { $$ = ast_var(sym_tbl->current, $1);   }
+        | '(' declarator ')'                { $$ = $2;                              }
         | direct_decl '[' ']'               {}
-        | direct_decl '[' NUMBER ']'        {}
+        | direct_decl '[' NUMBER ']'        { $$ = $1; ast_var_addtype($$, ast_array($3)); }
         | direct_decl '(' ')'               {}
         | direct_decl '(' ident_list ')'    {};
 
 pointer:
-          '*' type_qual_list_opt            {}
-        | '*' type_qual_list_opt pointer    {};
+          '*' type_qual_list_opt            { $$ = ast_pointer(); }
+        | '*' type_qual_list_opt pointer    { $$ = $3; ast_var_addtype($$, ast_pointer()); };
 
 type_qual_list:
           type_qual                 {}
@@ -249,8 +250,8 @@ lval:
 int 
 main (void) 
 {
-    init_symbol_tbl(&sym_tbl);
     strcpy(filename, "<stdin>");
+    init_symbol_tbl(&sym_tbl);
     return yyparse(); 
 }
 

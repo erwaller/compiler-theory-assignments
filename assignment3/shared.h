@@ -1,13 +1,14 @@
-#include "lib/symbol_tbl.h"
-#include "lib/ast.h"
-
 #ifndef shared_H
 #define shared_H
 
+#include "lib/symbol_tbl.h"
+#include "lib/ast.h"
+#include "parser.tab.h"
+
 extern char* yytext;
 extern int yyleng;
-extern int line_number;
-extern char filename[];
+int line_number;
+char filename[BUFSIZ];
 
 typedef enum { i, u, l, ul, ll, ull, d, f, ld, s, c, n, tok } type;
 

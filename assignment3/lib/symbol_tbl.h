@@ -1,8 +1,12 @@
 #include <stdlib.h>
-#define SYM_TBL_LEN 3959
+#include <stdio.h>
+#include <string.h>
 
 #ifndef symbol_tbl_H
 #define symbol_tbl_H
+
+#include "ast.h"
+#define SYM_TBL_LEN 3959
 
 /*  Functions return integer success codes 
  *      1   - operation successful
@@ -20,20 +24,25 @@ int new_sym();
 int write_sym();
 int read_sym();
 
-struct symbol {
-    struct symbol* next;
+typedef struct SYMBOL symbol;
+struct SYMBOL {
+    symbol* next;
     char* ident;
+    ast* ast_node;
     int value;
 };
-struct scope {
-    struct scope* prev;
-    struct symbol* buckets[SYM_TBL_LEN];
+typedef struct SCOPE scope;
+struct SCOPE {
+    scope* prev;
+    symbol* buckets[SYM_TBL_LEN];
     char* file_start;
     int line_start;
+    int is_func;        // Is this a function scope?
 };
-typedef struct {
-    struct scope *current, *global;
-} symbol_tbl;
+typedef struct SYMBOL_TBL symbol_tbl;
+struct SYMBOL_TBL {
+    scope *current, *global;
+};
 
 // Helper Stuff
 unsigned long hash(char *str);
