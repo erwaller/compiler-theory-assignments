@@ -1,11 +1,14 @@
-simple: parser.tab.c lex.yy.c symbol_tbl.o ast.o
-	gcc -lm -o simple parser.tab.c lex.yy.c symbol_tbl.o ast.o
+simple: parser.tab.c lex.yy.c symbol_tbl.o ast.o list.o
+	gcc -lm -o simple parser.tab.c lex.yy.c symbol_tbl.o ast.o list.o
 
 symbol_tbl.o: lib/symbol_tbl.c lib/symbol_tbl.h
 	gcc -c lib/symbol_tbl.c
 
 ast.o: lib/ast.h lib/ast.c
 	gcc -c lib/ast.c
+	
+list.o:	lib/list.c lib/list.h
+	gcc -c lib/list.c
 
 parser.tab.c: parser.y
 	bison -r all parser.y

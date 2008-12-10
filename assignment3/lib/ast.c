@@ -45,66 +45,25 @@ void ast_declspecs_addtypequal(ast* declspecs, int type_qual) {
 
 }
 
-ast* ast_decllist() {
-    ast* node = ast_newnode(AST_DECLLIST);
+ast* ast_list() {
+	ast* node = ast_newnode(AST_LIST);
+	node->list = list_newlist();
     return node;
 }
-
-void ast_decllist_adddeclr(ast* decl_list, ast* declr) {
+void ast_list_push(ast* ast_list, void* thing) {
+    list_push(ast_list->list, thing);
+}
+void ast_list_reverse(ast* ast_list) {
+    list_reverse(ast_list->list);
+}
+void ast_list_concat(ast* ast_list) {
+    list_concat(ast_list->list);
 }
 
-
-list* list_new() {
-    list *list;
-    list = malloc(sizeof(list));
-    list->head = list->tail = NULL;
-    return list;
-}
-list_item* list_newlistitem(void* thing) {
-    list_item *list_item;
-    list_item = malloc(sizeof(list_item));
-    list_item->thing = thing;
-    return list_item;
-}
-void list_push(list* list, void* thing) {
-    // The "prev" member of the first list entry and the
-    // "next" member of the last list entry will be NULL
-    list_item *list_item = list_newlistitem(thing);
-    if (list->head == NULL)  {
-        // List is empty
-        list->head = list->tail = list_item;
-    } else {
-        list_item->prev = list->tail;
-        list->tail->next = list_item;
-        list->tail = list_item;
-    }
-}
-void list_reverse(list* list) {
-    list_item *cur, *next, *swap;
-    cur = list->head;
-    while(cur != NULL) {
-        next = cur->next;
-        swap = cur->prev;
-        cur->prev = cur->next;
-        cur->next = swap;
-        cur = next;
-    }
-    swap = list->head;
-    list->head = list->tail;
-    list->tail = swap;
-}
-
-ast* ast_block() {
+ast* ast_block(ast* stmts) {
     ast* node = ast_newnode(AST_BLOCK);
+    node->stmts = stmts;
     return node;
-}
-
-void ast_block_addstmt(ast* block, ast* stmt) {
-    ast** insert;
-    insert = &block->first_stmt;
-    while(*insert != NULL)
-        insert = &(*insert)->next_stmt;
-    *insert = stmt;
 }
 
 ast* ast_funcdef(ast* declr, ast* block) {
@@ -117,6 +76,7 @@ ast* ast_funcdef(ast* declr, ast* block) {
 ast* ast_var(scope* scope, char* ident) {
     ast* node = ast_newnode(AST_VAR);
     new_sym(scope, ident, node);
+    node->ctype = ast_list();
     return node;
 }
 
@@ -159,13 +119,13 @@ void ast_print(ast* ast) {
             break;
         case AST_BLOCK:
             printf("ast_block\n");
-            INDENT(ast_print(ast->first_stmt));
-            ast_print(ast->next_stmt);
+            //INDENT(ast_print(ast->first_stmt));
+            //ast_print(ast->next_stmt);
             break;
         case AST_DECLN:
             printf("ast_decln\n");
             //INDENT(ast_print(ast->decl_list));
-            ast_print(ast->next_stmt);
+            //ast_print(ast->next_stmt);
             break;
         case AST_DECLR:
             printf("ast_declr\n");
@@ -177,7 +137,7 @@ void ast_print(ast* ast) {
             break;
         case AST_STMT:
             printf("ast_stmt\n");
-            ast_print(ast->next_stmt);
+            //ast_print(ast->next_stmt);
             break;
         case AST_VAR:
             //ast_print(ast->storage_specs);

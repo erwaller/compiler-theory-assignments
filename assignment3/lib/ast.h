@@ -4,19 +4,7 @@
 #ifndef ast_H
 #define ast_H
 
-// General Purpose List
-typedef struct LIST_ITEM list_item;
-struct LIST_ITEM {
-    list_item *next, *prev;
-    void *thing;
-};
-typedef struct LIST list;
-struct LIST {
-    list_item *head, *tail;
-};
-list* list_new();
-void list_push();
-void list_reverse();
+#include "list.h"
 
 typedef enum {
     AST_BINOP,
@@ -37,18 +25,26 @@ typedef enum {
 
 typedef union AST_NODE ast;
 union AST_NODE {
-    struct { ast_nodetype type; ast* next_stmt;                     };  // stmt
-    struct { ast_nodetype type; ast* next_stmt; ast* first_stmt;    };  // block
-    struct { ast_nodetype type; ast* next_stmt; list* decls;        };  // declaration
+	struct { ast_nodetype type; list* list;							};	// list (wrapped in ast)
+    struct { ast_nodetype type;	                     				};  // stmt
+	struct { ast_nodetype type; ast* stmts;							};  // block
+    struct { ast_nodetype type; ast* decls;        				    };  // declaration
     struct { ast_nodetype type; ast* declr; ast* block;             };  // funcdef
-    struct { ast_nodetype type; list* declrs;                       };  // decl_list
-    struct { ast_nodetype type; ast *ctype, *pctype, *decl_specs;   };  // var
-    struct { ast_nodetype type; ast *ctype, *pctype; int size;      };  // array
-    struct { ast_nodetype type; ast *ctype, *pctype;                };  // pointer
+    struct { ast_nodetype type; ast* declrs;                        };  // decl_list
+    struct { ast_nodetype type; ast *ctype, *decl_specs;            };  // var
+                                // ctype is a linked list of type-nodes
+    struct { ast_nodetype type; int size;                           };  // array
+    struct { ast_nodetype type;                                     };  // pointer
     struct { ast_nodetype type;                                         // declspecs
              list *type_quals, *storage_specs, *type_specs;         };
     struct { ast_nodetype type; list* list;                         };  // list
 };
+
+// Wrappers for the generic list functions
+ast* ast_list();
+void ast_list_push();
+void ast_list_reverse();
+void ast_list_concat();
 
 ast* ast_stmt();
 ast* ast_decln();
@@ -57,8 +53,6 @@ ast* ast_declspecs();
 void ast_declspecs_addstoragespec();
 void ast_declspecs_addtypespec();
 void ast_declspecs_addtypequal();
-ast* ast_decllist();
-void ast_decllist_adddeclr();
 ast* ast_block();
 void ast_block_addstmt();
 ast* ast_funcdef();
