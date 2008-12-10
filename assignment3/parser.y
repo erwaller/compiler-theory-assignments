@@ -94,7 +94,7 @@
 %token _IMAGINARY
 
 %type <n>   type_spec storage_spec type_qual
-%type <n>   stmt declaration block_list block function_def global_stmt
+            stmt declaration block_list block function_def global_stmt
             decl_specs decl_list declarator direct_decl pointer decl_specs_opt
             type_qual_list type_qual_list_opt
 
@@ -130,14 +130,14 @@ function_def:
           decl_specs declarator block   { $$ = ast_funcdef($2, $3); }; 
 
 declaration:
-          decl_specs decl_list ';'      { 
-                                            ast* decl = ast_list_first($2);
-                                            while(decl != NULL) {
-                                                ast_list_push(decl->ctype, $1->type_specs);
-                                                decl = ast_list_next($2);
-                                            }
-                                            ast_print($2);
-                                        };
+          decl_specs decl_list ';'  { 
+                                        ast* decl = ast_list_first($2);
+                                        while(decl != NULL) {
+                                            ast_list_push(decl->ctype, $1->type_specs);
+                                            decl = ast_list_next($2);
+                                        }
+                                        ast_print($2);
+                                    };
 
 decl_specs:
           storage_spec decl_specs_opt   { $$ = $2; ast_list_push($2->storage_specs, $1); printf("pushing a storage spec\n");  }
