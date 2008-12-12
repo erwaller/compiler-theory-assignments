@@ -1,0 +1,30 @@
+void    char    short   int     long    float   double  signed  unsigned    debug name                  type
+1       0       0       0       0       0       0       0       0           "void"                      void
+0       1       0       0       0       0       0       0       0           "char"                      char
+0       1       0       0       0       0       0       1       0           "signed char"               signed_char
+0       1       0       0       0       0       0       0       1           "unsigned char"             unsigned_char
+0       0       1       0       0       0       0       0       0           "short"                     signed_short_int
+0       0       1       0       0       0       0       1       0           "signed short"              signed_short_int
+0       0       1       1       0       0       0       0       0           "short int"                 signed_short_int
+0       0       1       1       0       0       0       1       0           "signed short int"          signed_short_int
+0       0       1       0       0       0       0       0       1           "unsigned short"            unsigned_short_int
+0       0       1       1       0       0       0       0       1           "unsigned short int"        unsigned_short_int
+0       0       0       1       0       0       0       0       0           "int"                       signed_int
+0       0       0       0       0       0       0       1       0           "signed"                    signed_int
+0       0       0       1       0       0       0       1       0           "signed int"                signed_int
+0       0       0       0       0       0       0       0       1           "unsigned"                  unsigned_int
+0       0       0       1       0       0       0       0       1           "unsigned int"              unsigned_int
+0       0       0       0       1       0       0       0       0           "long"                      signed_long
+0       0       0       0       1       0       0       1       0           "signed long"               signed_long
+0       0       0       1       1       0       0       0       0           "long int"                  signed_long
+0       0       0       1       1       0       0       1       0           "signed long int"           signed_long
+0       0       0       0       1       0       0       0       1           "unsigned long"             unsigned_long
+0       0       0       1       1       0       0       0       1           "unsigned long int"         unsigned_long
+0       0       0       0       2       0       0       0       0           "long long"                 signed_long_long
+0       0       0       0       2       0       0       1       0           "signed long long"          signed_long_long
+0       0       0       1       2       0       0       0       0           "signed long long int"      signed_long_long
+0       0       0       0       2       0       0       0       1           "unsigned long long"        unsigned_long_long
+0       0       0       1       2       0       0       0       1           "unsigned long long int"    unsigned_long_long
+0       0       0       0       0       1       0       0       0           "float"                     float
+0       0       0       0       0       0       1       0       0           "double"                    double
+0       0       0       0       1       0       1       0       0           "long double"               long double

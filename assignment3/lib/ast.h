@@ -67,4 +67,32 @@ ast* ast_list_next();
 
 #define INDENT(x) {++indent; x; --indent;}
 
+/*
+// Semantically valid type specifications
+void
+char
+signed char
+unsigned char
+short, signed short, short int, signed short int
+unsigned short, unsigned short int
+int, signed, signed int
+unsigned, unsigned int
+long, signed long, long int, signed long int
+unsigned long, unsigned long int
+long long, signed long long, long long int, signed long long int
+unsigned long long, unsigned long long int
+float
+double
+long double
+struct or union speciﬁer
+*/
+
+// Not implemented here
+// _Bool
+// float _Complex
+// double _Complex
+// long double _Complex
+// enum speciﬁer 
+// typedef name
+
 #endif
