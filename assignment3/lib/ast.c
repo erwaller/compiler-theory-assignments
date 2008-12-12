@@ -79,20 +79,11 @@ ast* ast_list() {
 	node->list = list_newlist();
     return node;
 }
-void ast_list_push(ast* ast_list, void* thing) {
+ast* ast_list_push(ast* ast_list, void* thing) {
     list_push(ast_list->list, thing);
-}
-void ast_list_reverse(ast* ast_list) {
-    list_reverse(ast_list->list);
 }
 void ast_list_concat(ast* ast_list1, ast* ast_list2) {
     list_concat(ast_list1->list, ast_list2->list);
-}
-ast* ast_list_first(ast* ast_list) {
-    return (ast *)list_first(ast_list->list);
-}
-ast* ast_list_next(ast* ast_list) {
-    return (ast *)list_next(ast_list->list);
 }
 
 

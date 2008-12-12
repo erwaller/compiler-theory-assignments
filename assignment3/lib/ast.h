@@ -60,10 +60,7 @@ void ast_print();
 // AST specfic wrappers for the generic list lib
 ast* ast_list();
 void ast_list_push();
-void ast_list_reverse();
 void ast_list_concat();
-ast* ast_list_first();
-ast* ast_list_next();
 
 #define INDENT(x) {++indent; x; --indent;}
 
