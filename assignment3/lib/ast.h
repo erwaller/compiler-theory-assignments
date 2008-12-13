@@ -29,7 +29,7 @@ typedef enum {
 } ast_nodetype;
 
 union AST_NODE {
-	struct { ast_nodetype type; list* list;							};	// list (wrapped in ast)
+	struct { ast_nodetype type; cons* list;							};	// list (wrapped in ast)
     struct { ast_nodetype type;	                     				};  // stmt
 	struct { ast_nodetype type; ast* stmts;							};  // block
     struct { ast_nodetype type; ast* declr; ast* block;             };  // funcdef
@@ -40,8 +40,8 @@ union AST_NODE {
     struct { ast_nodetype type;                                     };  // pointer
     struct { ast_nodetype type; int val;                            };  // storage spec, type spec, type qual
     struct { ast_nodetype type;                                         // declspecs
-             ast *type_quals, *storage_specs, *type_specs;          };
-    struct { ast_nodetype type; list* list;                         };  // list
+             cons *type_quals, *storage_specs, *type_specs;         };
+    struct { ast_nodetype type; cons* list;                         };  // list
 };
 
 ast* ast_stmt();
@@ -57,39 +57,6 @@ ast* ast_pointer();
 ast* ast_array();
 void ast_print();
 
-// AST specfic wrappers for the generic list lib
-ast* ast_list();
-void ast_list_push();
-void ast_list_concat();
-
 #define INDENT(x) {++indent; x; --indent;}
-
-/*
-// Semantically valid type specifications
-void
-char
-signed char
-unsigned char
-short, signed short, short int, signed short int
-unsigned short, unsigned short int
-int, signed, signed int
-unsigned, unsigned int
-long, signed long, long int, signed long int
-unsigned long, unsigned long int
-long long, signed long long, long long int, signed long long int
-unsigned long long, unsigned long long int
-float
-double
-long double
-struct or union speciﬁer
-*/
-
-// Not implemented here
-// _Bool
-// float _Complex
-// double _Complex
-// long double _Complex
-// enum speciﬁer 
-// typedef name
 
 #endif

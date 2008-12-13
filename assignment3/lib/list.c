@@ -7,15 +7,16 @@ cons* new_cons(void* thing) {
     return new;
 }
 
+// Returns pointer to beginning of the list
 cons* list_push(cons* list, void* thing) {
-    cons* new = new_cons(thing);
+    cons *new = new_cons(thing), *step = list;
     if (list == NULL)
         return new;
-    while(list->next != NULL)
-        list = list->next;
-    list->next = new;
-    list->next->prev = list;
-    return list; // Maybe we should return an unmodified list..
+    while(step->next != NULL)
+        step = step->next;
+    step->next = new;
+    step->next->prev = step;
+    return list;
 }
 
 void list_concat(cons* list1, cons* list2) {

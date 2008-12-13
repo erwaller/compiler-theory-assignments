@@ -35,7 +35,7 @@ ast* ast_funcdef(ast* declr, ast* block) {
 ast* ast_var(scope* scope, char* ident) {
     ast* node = ast_newnode(AST_VAR);
     new_sym(scope, ident, node);
-    node->ctype = ast_list();
+    node->ctype = NULL;
     return node;
 }
 ast* ast_storagespec(int storage_spec) {
@@ -56,9 +56,7 @@ ast* ast_typequal(int type_qual) {
 
 ast* ast_declspecs() {
     ast* node = ast_newnode(AST_DECLSPECS);
-    node->type_quals = ast_list();
-    node->type_specs = ast_list();
-    node->storage_specs = ast_list();
+    node->type_quals = node->type_specs = node->storage_specs = NULL;
     return node;
 }
 
@@ -71,19 +69,6 @@ ast* ast_array(int size) {
     ast* node = ast_newnode(AST_ARRAY);
     node->size = size;
     return node;
-}
-
-// AST specfic wrappers for the generic list lib
-ast* ast_list() {
-	ast* node = ast_newnode(AST_LIST);
-	node->list = list_newlist();
-    return node;
-}
-ast* ast_list_push(ast* ast_list, void* thing) {
-    list_push(ast_list->list, thing);
-}
-void ast_list_concat(ast* ast_list1, ast* ast_list2) {
-    list_concat(ast_list1->list, ast_list2->list);
 }
 
 
@@ -139,15 +124,7 @@ void ast_print(ast* node) {
             break;
         case AST_LIST:
             {
-                //printf("encountered an ast_list of %d items\n", node->list->length);
-                int old_indent = indent;
-                ast* item = ast_list_first(node);
-                while (item != NULL) {
-                    ++indent;
-                    ast_print(item);
-                    item = ast_list_next(node);
-                }
-                indent = old_indent;
+                printf("encountered a list\n");
             }
             break;
         /*case AST_INTLISTITEM:
