@@ -34,7 +34,7 @@ union AST_NODE {
 	struct { ast_nodetype type; ast* stmts;							};  // block
     struct { ast_nodetype type; ast* declr; ast* block;             };  // funcdef
     struct { ast_nodetype type; ast* declrs;                        };  // decl_list
-    struct { ast_nodetype type; ast *ctype; symbol* sym;            };  // var
+    struct { ast_nodetype type; cons *ctype; symbol* sym;           };  // var
                                 // ctype is a linked list of type-nodes
     struct { ast_nodetype type; int size;                           };  // array
     struct { ast_nodetype type;                                     };  // pointer

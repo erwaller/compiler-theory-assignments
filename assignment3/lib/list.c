@@ -19,9 +19,19 @@ cons* list_push(cons* list, void* thing) {
     return list;
 }
 
-void list_concat(cons* list1, cons* list2) {
-    if (list1 == NULL || list2 == NULL)
-        fprintf(stderr, "BUG: Passing a null cons pointer to list_concat\n");
+void list_concat(cons** plist1, cons** plist2) {
+    cons *list1, *list2;
+    if (plist1 == NULL || plist2 == NULL)
+        fprintf(stderr, "BUG: Passing null pointer to pointer to cons to list_concat\n");
+    if (*plist1 == NULL) {
+        *plist1 = *plist2;
+        return;
+    }
+    if (*plist2 == NULL) {
+        return;
+    }
+    list1 = *plist1;
+    list2 = *plist2;
     while(list1->next != NULL)
         list1 = list1->next;
     list1->next = list2;
@@ -39,5 +49,3 @@ int list_length(cons* list) {
     }
     return length;
 }
-       
-

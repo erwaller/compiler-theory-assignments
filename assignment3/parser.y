@@ -139,7 +139,7 @@ declaration:
                                             ast_list_push(decl->ctype, $1->type_specs);
                                             decl = ast_list_next($2);
                                         }
-                                        ast_print($2);
+                                        ast_print($2, 0);
                                         */
                                     };
 
@@ -158,8 +158,8 @@ decl_list:
 // concat any type-nodes from the pointer list to the
 // ast_var ctype list and pass the ast_var
 declarator:
-          direct_decl           { $$ = $1; }
-        | pointer direct_decl   { $$ = $2; list_concat($$->ctype, $1); };
+          direct_decl           { $$ = $1; ast_print($1, 0); }
+        | pointer direct_decl   { $$ = $2; list_concat($2->ctype, $1); };
 
 direct_decl: 
           IDENT                             { $$ = ast_var(sym_tbl->current, $1);   }

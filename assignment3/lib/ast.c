@@ -71,9 +71,13 @@ ast* ast_array(int size) {
     return node;
 }
 
+void list_print(cons* list, int indent) {
+    if (list == NULL) return;
+    ast_print((ast*)list->thing, indent);
+    list_print(list->next, indent);
+}
 
-void ast_print(ast* node) {
-    static int indent;
+void ast_print(ast* node, int indent) {
     int i = indent;
     
     // So that we don't have to check that node pointers
@@ -87,25 +91,25 @@ void ast_print(ast* node) {
     switch(node->type) {
         case AST_FUNCDEF:
             printf("ast_funcdef\n");
-            INDENT(ast_print(node->declr));
-            INDENT(ast_print(node->block));
+            INDENT(ast_print(node->declr, indent));
+            INDENT(ast_print(node->block, indent));
             break;
         case AST_BLOCK:
             printf("ast_block\n");
-            //INDENT(ast_print(node->first_stmt));
-            //ast_print(node->next_stmt);
+            //INDENT(ast_print(node->first_stmt, indent));
+            //ast_print(node->next_stmt, indent);
             break;
         case AST_DECLLIST:
             printf("ast_decllist\n");
-            //INDENT(ast_print(node->first_declr));
+            //INDENT(ast_print(node->first_declr, indent));
             break;
         case AST_STMT:
             printf("ast_stmt\n");
-            //ast_print(node->next_stmt);
+            //ast_print(node->next_stmt, indent);
             break;
         case AST_VAR:
             printf("ast_var: %s\n", node->sym->ident);
-            ast_print(node->ctype);
+            list_print(node->ctype, indent);
             break;
         case AST_TYPESPEC:
             switch(node->val) {
@@ -148,7 +152,7 @@ void ast_print(ast* node) {
                 default:
                     fprintf(stderr, "BUG: Unexpectedly reached the default label in ast_print's AST_INTLISTITEM's switch\n");
             }
-            ast_print(node->next);
+            ast_print(node->next, indent);
             break;*/
         case AST_POINTER:
             printf("pointer to\n");
