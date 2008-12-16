@@ -7,6 +7,13 @@ cons* new_cons(void* thing) {
     return new;
 }
 
+// An empty list is just a NULL cons pointer
+//   $$ is not initialized to NULL
+//   $$ = list_new() is preferable to $$ = NULL
+cons* list_new() {
+    return NULL;
+}
+
 // Returns pointer to beginning of the list
 cons* list_push(cons** list, void* thing) {
     cons *new = new_cons(thing), *step = *list;

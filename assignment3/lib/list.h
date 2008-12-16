@@ -14,5 +14,6 @@ struct CONS {
 cons* list_push();
 void list_concat();
 int list_length();
+cons* list_new();
 
 #endif

@@ -120,8 +120,8 @@ block:        open block_list close { $$ = ast_block($2);                   };
 open:         '{'                   { open_scope(sym_tbl);                  };
 close:        '}'                   { close_scope(sym_tbl);                 };
 
-block_list:   stmt                  { $$ = list_push(NULL, $1);             }
-            | block_list stmt       { $$ = list_push($1, $2);               };
+block_list:   stmt                  { $$ = list_new(); list_push(&$$, $1);        }
+            | block_list stmt       { $$ = $1; list_push(&$$, $2);          };
             
 stmt:         ';'                   { $$ = ast_stmt();  }
             | exp ';'               { $$ = ast_stmt();  }
@@ -144,39 +144,39 @@ declaration:
                                     };
 
 decl_specs:
-          storage_spec decl_specs_opt   { $$ = $2; list_push($2->storage_specs, $1); printf("pushing a storage spec\n");  }
-        | type_spec decl_specs_opt      { $$ = $2; list_push($2->type_specs, $1);  }
-        | type_qual decl_specs_opt      { $$ = $2; list_push($2->type_quals, $1);  }
+          storage_spec decl_specs_opt   { $$ = $2; list_push(&$2->storage_specs, $1); printf("pushing a storage spec\n");  }
+        | type_spec decl_specs_opt      { $$ = $2; list_push(&$2->type_specs, $1);  }
+        | type_qual decl_specs_opt      { $$ = $2; list_push(&$2->type_quals, $1);  }
         | INLINE decl_specs_opt         { $$ = $2; };   /* The only function-specifier */
 decl_specs_opt:                         { $$ = ast_declspecs(); }
         | decl_specs                    { $$ = $1;              };
         
 decl_list:
-          declarator                { $$ = list_push(NULL, $1);                 }
-        | decl_list ',' declarator  { $$ = list_push($1, $3);                   };
+          declarator                { ast_print($1, 0);             }
+        | decl_list ',' declarator  { $$ = $1; ast_print($3, 0);    };
         
 // concat any type-nodes from the pointer list to the
 // ast_var ctype list and pass the ast_var
 declarator:
-          direct_decl           { $$ = $1; ast_print($1, 0); }
-        | pointer direct_decl   { $$ = $2; list_concat($2->ctype, $1); };
+          direct_decl           { $$ = $1;                                  }
+        | pointer direct_decl   { $$ = $2; list_concat(&$2->ctype, &$1);    };
 
 direct_decl: 
           IDENT                             { $$ = ast_var(sym_tbl->current, $1);   }
         | '(' declarator ')'                { $$ = $2;                              }
         | direct_decl '[' ']'               {}
-        | direct_decl '[' NUMBER ']'        { $$ = $1; list_push($1->ctype, ast_array($3)); }
+        | direct_decl '[' NUMBER ']'        { $$ = $1; list_push(&$1->ctype, ast_array($3)); }
         | direct_decl '(' ')'               {}
         | direct_decl '(' ident_list ')'    {};
 
-// Passing up an ast_list of type-nodes
+// Passing up a list of type-nodes
 pointer:
-          '*' type_qual_list_opt            { $$ = list_push(NULL, ast_pointer());  }
-        | '*' type_qual_list_opt pointer    { $$ = list_push($3, ast_pointer());    };
+          '*' type_qual_list_opt            { $$ = list_new(); list_push(&$$, ast_pointer()); }
+        | '*' type_qual_list_opt pointer    { $$ = $3; list_push(&$$, ast_pointer());   };
 
 type_qual_list:
-          type_qual                 { $$ = list_push(NULL, $1);     }
-        | type_qual_list type_qual  { $$ = list_push($1, $2);       };
+          type_qual                 { $$ = list_new(); list_push(&$$, $1);    }
+        | type_qual_list type_qual  { $$ = $1; list_push(&$$, $2);      };
 type_qual_list_opt:
         | type_qual_list            { $$ = $1; };
 
@@ -185,26 +185,26 @@ ident_list:
         | ident_list ',' IDENT      {};
         
 type_qual:
-          CONST     { $$ = ast_typequal(CONST);       }
-        | RESTRICT  { $$ = ast_typequal(RESTRICT);    }
-        | VOLATILE  { $$ = ast_typequal(VOLATILE);    };
+          CONST     { $$ = ast_typequal(CONST);         }
+        | RESTRICT  { $$ = ast_typequal(RESTRICT);      }
+        | VOLATILE  { $$ = ast_typequal(VOLATILE);      };
         
 storage_spec:
-          EXTERN    { $$ = ast_storagespec(EXTERN);      }
-        | STATIC    { $$ = ast_storagespec(STATIC);      }
-        | AUTO      { $$ = ast_storagespec(AUTO);        }
-        | REGISTER  { $$ = ast_storagespec(REGISTER);    };
+          EXTERN    { $$ = ast_storagespec(EXTERN);     }
+        | STATIC    { $$ = ast_storagespec(STATIC);     }
+        | AUTO      { $$ = ast_storagespec(AUTO);       }
+        | REGISTER  { $$ = ast_storagespec(REGISTER);   };
 
 type_spec:
-          VOID      { $$ = ast_typespec(VOID);        }
-        | CHAR      { $$ = ast_typespec(CHAR);        }
-        | SHORT     { $$ = ast_typespec(SHORT);       }
-        | INT       { $$ = ast_typespec(INT);         }
-        | LONG      { $$ = ast_typespec(LONG);        }
-        | FLOAT     { $$ = ast_typespec(FLOAT);       }
-        | DOUBLE    { $$ = ast_typespec(DOUBLE);      }
-        | SIGNED    { $$ = ast_typespec(SIGNED);      }
-        | UNSIGNED  { $$ = ast_typespec(UNSIGNED);    };
+          VOID      { $$ = ast_typespec(VOID);          }
+        | CHAR      { $$ = ast_typespec(CHAR);          }
+        | SHORT     { $$ = ast_typespec(SHORT);         }
+        | INT       { $$ = ast_typespec(INT);           }
+        | LONG      { $$ = ast_typespec(LONG);          }
+        | FLOAT     { $$ = ast_typespec(FLOAT);         }
+        | DOUBLE    { $$ = ast_typespec(DOUBLE);        }
+        | SIGNED    { $$ = ast_typespec(SIGNED);        }
+        | UNSIGNED  { $$ = ast_typespec(UNSIGNED);      };
 
 exp:        
           NUMBER                {}
