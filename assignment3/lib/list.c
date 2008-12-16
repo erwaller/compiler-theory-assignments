@@ -8,15 +8,19 @@ cons* new_cons(void* thing) {
 }
 
 // Returns pointer to beginning of the list
-cons* list_push(cons* list, void* thing) {
-    cons *new = new_cons(thing), *step = list;
+cons* list_push(cons** list, void* thing) {
+    cons *new = new_cons(thing), *step = *list;
     if (list == NULL)
+        fprintf(stderr, "BUG: Passing null pointer to pointer to cons to list_push\n");
+    if (*list == NULL) {
+        *list = new;
         return new;
+    }
     while(step->next != NULL)
         step = step->next;
     step->next = new;
     step->next->prev = step;
-    return list;
+    return *list;
 }
 
 void list_concat(cons** plist1, cons** plist2) {
