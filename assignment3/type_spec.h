@@ -41,13 +41,17 @@ enum ALLOWED_TYPE {
 };
 
 typedef struct {
-    unsigned int key;
+    int key;
     char* debug_str;
     allowed_type type;
 } t_lookup_entry;
 
-int check_type();
+typedef struct {
+    int _void, _char, _short, _int, _long, _float, _double, _signed, _unsigned;
+} t_type_table;
 
+t_lookup_entry* get_type();
+int type_signature();
 
 // Not implemented here
 // _Bool

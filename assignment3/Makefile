@@ -28,3 +28,6 @@ clean:
 	rm -f parser.tab.* parser.output
 	rm -f calc simple
 	rm -f sym_test
+	
+fats:
+	echo "http://www.youtube.com/watch?v=wL6NN65sVpE"

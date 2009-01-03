@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "../type_spec.h"
 
 #define POSSIBLE_TYPES_LEN 29
@@ -35,14 +36,31 @@ t_lookup_entry possible_types[POSSIBLE_TYPES_LEN] = {
     {90,	"long double",          	t_long_double}
 };
 
-int check_type(unsigned int key) {
+t_lookup_entry* get_type(unsigned int key) {
     int i;
     for (i = 0; i < POSSIBLE_TYPES_LEN; ++i)
         if(possible_types[i].key == key)
-            return 1;
-    return 0;
+            return &possible_types[i];
+    return NULL;
+}
+
+int type_signature(t_type_table type) {
+    int signature = 0;
+    signature = type._void * pow(3,8)
+              + type._char * pow(3,7)
+              + type._short * pow(3,6)
+              + type._int * pow(3,5)
+              + type._long * pow(3,4)
+              + type._float * pow(3,3)
+              + type._double * pow(3,2)
+              + type._signed * pow(3,1)
+              + type._unsigned * pow(3,0);
+    return signature;
 }
 
 int main () {
-    printf("10 is an entry in the table: %s\n", (check_type(10)) ? "yes" : "no");
+    t_type_table type = {0, 0, 0, 1, 2, 0, 0, 0, 0};
+    //printf("calculate type signature for long long int: %d\n", type_signature(type));
+    //printf("10 is an entry in the table: %s\n", (check_type(10)) ? "yes" : "no");
+    printf("The variable is a: %s\n", get_type(type_signature(type))->debug_str);
 }
